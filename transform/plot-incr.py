@@ -18,31 +18,18 @@ from netCDF4 import Dataset as netcdf_dataset
 
 #=========================================================================
 class GeneratePlot():
-  def __init__(self, debug=0, output=0, filename=None):
+  def __init__(self, debug=0, output=0):
     self.debug = debug
     self.output = output
-    self.filename = filename
 
     self.set_default()
 
-  def plot(self):
-   #fname = os.path.join(config["repo_data_dir"],
-   #                 'netcdf', 'HadISST1_SST_update.nc')
-
-   #dataset = netcdf_dataset(fname)
-    dataset = netcdf_dataset(self.filename)
-
-    t = dataset.variables['T_inc'][120, :, :]
-    lats = dataset.variables['lat'][:]
-    lons = dataset.variables['lon'][:]
-
-    cyclic_data, cyclic_lons = add_cyclic_point(t, coord=lons)
-
+  def plot(self, lons, lats, data=[]):
    #ax.coastlines(resolution='110m')
    #ax.gridlines()
 
-    nrows=2
-    ncols=1
+    nrows = len(data)
+    ncols = 1
 
    #set up the plot
     proj = ccrs.PlateCarree()
@@ -56,27 +43,17 @@ class GeneratePlot():
 
     for i in range(len(axs)):
       axs[i].set_global()
+
+      pvar = data[i]
+
+     #print('Plot No. ', i)
+     #print('\tpvar.shape = ', pvar.shape)
+
+      cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
+
       cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
                      cmap=self.cmapname)
      #               cmap=self.cmapname, extend='both')
-
-     #gl = axs[i].gridlines(crs=proj, draw_labels=True,
-     #                      linewidth=1, color='green', alpha=0.5, linestyle='.')
-     #gl.top_labels = False
-     #gl.left_labels = False
-     #gl.right_labels = False
-
-     #gl.xlines = False
-     #gl.xlocator = mticker.FixedLocator([-180, -45, 0, 45, 180])
-     #gl.xformatter = LongitudeFormatter()
-     #gl.xlabel_style = {'size': 5, 'color': 'green'}
-     #gl.xlabel_style = {'color': 'black', 'weight': 'bold'}
-
-     #gl.ylines = False
-     #gl.ylocator = LatitudeLocator()
-     #gl.yformatter = LatitudeFormatter()
-     #gl.ylabel_style = {'size': 5, 'color': 'green'}
-     #gl.ylabel_style = {'color': 'black', 'weight': 'bold'}
 
       axs[i].set_extent([-180, 180, -90, 90], crs=proj)
       axs[i].coastlines(resolution='auto', color='k')
@@ -85,14 +62,16 @@ class GeneratePlot():
       axs[i].set_title(self.runname[i])
 
    #Adjust the location of the subplots on the page to make room for the colorbar
-    fig.subplots_adjust(bottom=0.2, top=0.9, left=0.1, right=0.8,
+    fig.subplots_adjust(bottom=0.1, top=0.9, left=0.05, right=0.8,
                         wspace=0.02, hspace=0.02)
 
    #Add a colorbar axis at the bottom of the graph
-    cbar_ax = fig.add_axes([0.85, 0.1, 0.9, 0.8])
+    cbar_ax = fig.add_axes([0.85, 0.1, 0.05, 0.85])
 
    #Draw the colorbar
     cbar=fig.colorbar(cs, cax=cbar_ax, orientation='vertical')
+
+    cbar.set_label(self.label, rotation=90)
 
    #Add a big title at the top
     plt.suptitle(self.title)
@@ -101,19 +80,19 @@ class GeneratePlot():
     plt.tight_layout()
 
     if(self.output):
-      if(self.image_name is None):
-        image_name = 't_aspect.png'
+      if(self.imagename is None):
+        imagename = 't_aspect.png'
       else:
-        image_name = self.image_name
-      plt.savefig(image_name)
+        imagename = self.imagename
+      plt.savefig(imagename)
       plt.close()
     else:
       plt.show()
 
   def set_default(self):
-    self.image_name = 'sample.png'
+    self.imagename = 'sample.png'
 
-    self.runname = ['GSI', 'JEDI', 'GSI', 'JEDI', 'GSI', 'JEDI']
+    self.runname = ['GSI', 'JEDI', 'JEDI - GSI']
 
    #cmapname = coolwarm, bwr, rainbow, jet, seismic
    #self.cmapname = 'bwr'
@@ -135,8 +114,14 @@ class GeneratePlot():
     self.weight = 'bold'
     self.labelsize = 'medium'
 
-    self.label = 'T (C)'
+    self.label = 'Unit (C)'
     self.title = 'Temperature Increment'
+
+  def set_label(self, label='Unit (C)'):
+    self.label = label
+
+  def set_title(self, title='Temperature Increment'):
+    self.title = title
 
   def set_clevs(self, clevs=[]):
     self.clevs = clevs
@@ -145,7 +130,7 @@ class GeneratePlot():
     self.cblevs = cblevs
 
   def set_imagename(self, imagename):
-    self.image_name = imagename
+    self.imagename = imagename
 
   def set_cmapname(self, cmapname):
     self.cmapname = cmapname
@@ -154,21 +139,75 @@ class GeneratePlot():
 if __name__== '__main__':
   debug = 1
   output = 0
-  filename = 'jedi_increment.nc4'
+  gsifile = 'fv3_increment6.nc'
+  jedifile = 'xainc.20200101_120000z.nc4'
 
-  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=', 'workdir='])
-
+  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
+                                                'jedifile=', 'gsifile='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
     elif o in ('--output'):
       output = int(a)
-    elif o in ('--workdir'):
-      workdir = a
+    elif o in ('--jedifile'):
+      jedifile = a
+    elif o in ('--gsifile'):
+      gsifile = a
     else:
       assert False, 'unhandled option'
 
-  gp = GeneratePlot(debug=debug, output=output, filename=filename)
+  gp = GeneratePlot(debug=debug, output=output)
 
-  gp.plot()
+  ncjedi = netcdf_dataset(jedifile)
+  ncgsi = netcdf_dataset(gsifile)
+  lats = ncjedi.variables['lat'][:]
+  lons = ncjedi.variables['lon'][:]
+
+#-----------------------------------------------------------------------------------------
+  jedi_varlist = ['T', 'ua', 'va',
+                  'sphum', 'delp', 'DZ', 'o3mr']
+  gsi_varlist = ['T_inc', 'u_inc', 'v_inc',
+                 'sphum_inc', 'delp_inc', 'delz_inc', 'o3mr_inc']
+
+  unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)',
+              'Unit (kg/kg)', 'Unit (Pa', 'Unit (m', 'Unit (ppm)']
+
+#-----------------------------------------------------------------------------------------
+  for n in range(len(jedi_varlist)):
+    jedivar = ncjedi.variables[jedi_varlist[n]][0, :, :, :]
+    gsivar = ncgsi.variables[gsi_varlist[n]][:, :, :]
+
+    nlev, nlat, nlon = jedivar.shape
+   #print('jedivar.shape = ', jedivar.shape)
+   #print('gsivar.shape = ', gsivar.shape)
+
+    gp.set_label(unitlist[n])
+
+    for lev in range(1, nlev, 10):
+      v0 = gsivar[lev,:,:]
+      v1 = jedivar[lev,:,:]
+      v2 = v1 - v0
+
+     #print('v0.shape = ', v0.shape)
+     #print('v1.shape = ', v1.shape)
+     #print('v2.shape = ', v2.shape)
+      data = [v0, v1, v2]
+
+      title = '%s at Level %d' %(jedi_varlist[n], lev)
+      gp.set_title(title)
+
+      print('Plotting ', title)
+ 
+      print('\tv0.max: %f, v0.min: %f' %(np.max(v0), np.min(v0)))
+      print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
+      print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
+
+      imagename = '%s_lev_%3.3d.png' %(jedi_varlist[n], lev)
+      gp.set_imagename(imagename)
+
+      gp.plot(lons, lats, data=data)
+
+#-----------------------------------------------------------------------------------------
+  ncjedi.close()
+  ncgsi.close()
 
