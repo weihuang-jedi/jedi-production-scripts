@@ -1,14 +1,17 @@
 import getopt
 import os, sys
-
-import matplotlib.pyplot as plt
-from netCDF4 import Dataset as netcdf_dataset
 import numpy as np
 
-#import cartopy
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 import cartopy.crs as ccrs
 from cartopy import config
 from cartopy.util import add_cyclic_point
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+
+from netCDF4 import Dataset as netcdf_dataset
 
 #=========================================================================
 class GeneratePlot():
@@ -16,6 +19,8 @@ class GeneratePlot():
     self.debug = debug
     self.output = output
     self.filename = filename
+
+    self.set_default()
 
   def plot(self):
    #fname = os.path.join(config["repo_data_dir"],
@@ -28,39 +33,96 @@ class GeneratePlot():
     lats = dataset.variables['lat'][:]
     lons = dataset.variables['lon'][:]
 
-    #my preferred way of creating plots (even if it is only one plot)
-    ef, ax = plt.subplots(1,1,figsize=(10,5),subplot_kw={'projection': ccrs.PlateCarree()})
-    ef.subplots_adjust(hspace=0,wspace=0,top=0.925,left=0.1)
-
-    #get size and extent of axes:
-    axpos = ax.get_position()
-    pos_x = axpos.x0+axpos.width + 0.01# + 0.25*axpos.width
-    pos_y = axpos.y0
-    cax_width = 0.04
-    cax_height = axpos.height
-    #create new axes where the colorbar should go.
-    #it should be next to the original axes and have the same height!
-    pos_cax = ef.add_axes([pos_x,pos_y,cax_width,cax_height])
-
     cyclic_data, cyclic_lons = add_cyclic_point(t, coord=lons)
-    im = ax.contourf(cyclic_lons, lats, cyclic_data, 60, transform=ccrs.PlateCarree())
+
+   #ax.coastlines(resolution='110m')
+   #ax.gridlines()
+
+
+   #set up the plot
+    proj = ccrs.PlateCarree()
+
+    f, ax = plt.subplots(1, 1, subplot_kw=dict(projection=proj))
+   #h = ax.pcolormesh(cyclic_lons, lats, cyclic_data, transform=proj, cmap='BuRd')
+    h = ax.pcolormesh(cyclic_lons, lats, cyclic_data, transform=proj, cmap=self.cmapname)
 
     ax.coastlines()
+   #ax.gridlines()
 
-    plt.colorbar(im, cax=pos_cax)
+    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+                      linewidth=2, color='gray', alpha=0.5, linestyle='--')
+    gl.top_labels = False
+   #gl.left_labels = False
+    gl.right_labels = False
+    gl.xlines = False
+   #gl.xlocator = mticker.FixedLocator([-180, -45, 0, 45, 180])
+    gl.xformatter = LongitudeFormatter()
+    gl.xlabel_style = {'size': 10, 'color': 'green'}
+    gl.xlabel_style = {'color': 'black', 'weight': 'bold'}
 
-    ax.coastlines(resolution='110m')
-    ax.gridlines()
-    ax.set_extent([-20, 60, 33, 63])
+   #gl.ylocator = LatitudeLocator()
+    gl.yformatter = LatitudeFormatter()
+    gl.ylabel_style = {'size': 10, 'color': 'green'}
+    gl.ylabel_style = {'color': 'black', 'weight': 'bold'}
 
-    #when using this line the positioning of the colorbar is correct,
-    #but the image gets distorted.
-    #when omitting this line, the positioning of the colorbar is wrong,
-    #but the image is well represented (not distorted).
-    ax.set_aspect('auto', adjustable=None)
+   #following https://matplotlib.org/2.0.2/mpl_toolkits/axes_grid/users/overview.html#colorbar-whose-height-or-width-in-sync-with-the-master-axes
+   #we need to set axes_class=plt.Axes, else it attempts to create
+   #a GeoAxes as colorbar
 
-    plt.savefig('t_aspect.png')
-    plt.close()
+    divider = make_axes_locatable(ax)
+    ax_cb = divider.new_horizontal(size="5%", pad=0.1, axes_class=plt.Axes)
+
+    f.add_axes(ax_cb)
+    plt.colorbar(h, cax=ax_cb)
+
+    if(self.output):
+      if(self.image_name is None):
+        image_name = 't_aspect.png'
+      else:
+        image_name = self.image_name
+      plt.tight_layout()
+      plt.savefig(image_name)
+      plt.close()
+    else:
+      plt.show()
+
+  def set_default(self):
+    self.image_name = 'sample.png'
+
+   #cmapname = coolwarm, bwr, rainbow, jet, seismic
+   #self.cmapname = 'bwr'
+   #self.cmapname = 'coolwarm'
+   #self.cmapname = 'rainbow'
+    self.cmapname = 'jet'
+
+    self.obslat = []
+    self.obslon = []
+
+   #self.clevs = np.arange(-0.2, 0.21, 0.01)
+   #self.cblevs = np.arange(-0.2, 0.3, 0.1)
+
+    self.extend = 'both'
+    self.alpha = 0.5
+    self.pad = 0.1
+    self.orientation = 'horizontal'
+    self.size = 'large'
+    self.weight = 'bold'
+    self.labelsize = 'medium'
+
+    self.label = 'Time (sec)'
+    self.title = 'Time (sec)'
+
+  def set_clevs(self, clevs=[]):
+    self.clevs = clevs
+
+  def set_cblevs(self, cblevs=[]):
+    self.cblevs = cblevs
+
+  def set_imagename(self, imagename):
+    self.image_name = imagename
+
+  def set_cmapname(self, cmapname):
+    self.cmapname = cmapname
 
 #--------------------------------------------------------------------------------
 if __name__== '__main__':
