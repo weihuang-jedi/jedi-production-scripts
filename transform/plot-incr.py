@@ -11,6 +11,9 @@ from cartopy import config
 from cartopy.util import add_cyclic_point
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 
+import cartopy.feature as cfeature
+import cartopy.mpl.ticker as cticker
+
 from netCDF4 import Dataset as netcdf_dataset
 
 #=========================================================================
@@ -38,49 +41,70 @@ class GeneratePlot():
    #ax.coastlines(resolution='110m')
    #ax.gridlines()
 
+    nrows=2
+    ncols=1
 
    #set up the plot
     proj = ccrs.PlateCarree()
 
-    f, ax = plt.subplots(1, 1, subplot_kw=dict(projection=proj))
-   #h = ax.pcolormesh(cyclic_lons, lats, cyclic_data, transform=proj, cmap='BuRd')
-    h = ax.pcolormesh(cyclic_lons, lats, cyclic_data, transform=proj, cmap=self.cmapname)
+    fig, axs = plt.subplots(nrows=nrows,ncols=ncols,
+                            subplot_kw=dict(projection=proj),
+                            figsize=(11,8.5))
+ 
+   #axs is a 2 dimensional array of `GeoAxes`. Flatten it into a 1-D array
+    axs=axs.flatten()
 
-    ax.coastlines()
-   #ax.gridlines()
+    for i in range(len(axs)):
+      axs[i].set_global()
+      cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
+                     cmap=self.cmapname)
+     #               cmap=self.cmapname, extend='both')
 
-    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-                      linewidth=2, color='gray', alpha=0.5, linestyle='--')
-    gl.top_labels = False
-   #gl.left_labels = False
-    gl.right_labels = False
-    gl.xlines = False
-   #gl.xlocator = mticker.FixedLocator([-180, -45, 0, 45, 180])
-    gl.xformatter = LongitudeFormatter()
-    gl.xlabel_style = {'size': 10, 'color': 'green'}
-    gl.xlabel_style = {'color': 'black', 'weight': 'bold'}
+     #gl = axs[i].gridlines(crs=proj, draw_labels=True,
+     #                      linewidth=1, color='green', alpha=0.5, linestyle='.')
+     #gl.top_labels = False
+     #gl.left_labels = False
+     #gl.right_labels = False
 
-   #gl.ylocator = LatitudeLocator()
-    gl.yformatter = LatitudeFormatter()
-    gl.ylabel_style = {'size': 10, 'color': 'green'}
-    gl.ylabel_style = {'color': 'black', 'weight': 'bold'}
+     #gl.xlines = False
+     #gl.xlocator = mticker.FixedLocator([-180, -45, 0, 45, 180])
+     #gl.xformatter = LongitudeFormatter()
+     #gl.xlabel_style = {'size': 5, 'color': 'green'}
+     #gl.xlabel_style = {'color': 'black', 'weight': 'bold'}
 
-   #following https://matplotlib.org/2.0.2/mpl_toolkits/axes_grid/users/overview.html#colorbar-whose-height-or-width-in-sync-with-the-master-axes
-   #we need to set axes_class=plt.Axes, else it attempts to create
-   #a GeoAxes as colorbar
+     #gl.ylines = False
+     #gl.ylocator = LatitudeLocator()
+     #gl.yformatter = LatitudeFormatter()
+     #gl.ylabel_style = {'size': 5, 'color': 'green'}
+     #gl.ylabel_style = {'color': 'black', 'weight': 'bold'}
 
-    divider = make_axes_locatable(ax)
-    ax_cb = divider.new_horizontal(size="5%", pad=0.1, axes_class=plt.Axes)
+      axs[i].set_extent([-180, 180, -90, 90], crs=proj)
+      axs[i].coastlines(resolution='auto', color='k')
+      axs[i].gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
-    f.add_axes(ax_cb)
-    plt.colorbar(h, cax=ax_cb)
+      axs[i].set_title(self.runname[i])
+
+   #Adjust the location of the subplots on the page to make room for the colorbar
+    fig.subplots_adjust(bottom=0.2, top=0.9, left=0.1, right=0.8,
+                        wspace=0.02, hspace=0.02)
+
+   #Add a colorbar axis at the bottom of the graph
+    cbar_ax = fig.add_axes([0.85, 0.1, 0.9, 0.8])
+
+   #Draw the colorbar
+    cbar=fig.colorbar(cs, cax=cbar_ax, orientation='vertical')
+
+   #Add a big title at the top
+    plt.suptitle(self.title)
+
+    fig.canvas.draw()
+    plt.tight_layout()
 
     if(self.output):
       if(self.image_name is None):
         image_name = 't_aspect.png'
       else:
         image_name = self.image_name
-      plt.tight_layout()
       plt.savefig(image_name)
       plt.close()
     else:
@@ -88,6 +112,8 @@ class GeneratePlot():
 
   def set_default(self):
     self.image_name = 'sample.png'
+
+    self.runname = ['GSI', 'JEDI', 'GSI', 'JEDI', 'GSI', 'JEDI']
 
    #cmapname = coolwarm, bwr, rainbow, jet, seismic
    #self.cmapname = 'bwr'
@@ -109,8 +135,8 @@ class GeneratePlot():
     self.weight = 'bold'
     self.labelsize = 'medium'
 
-    self.label = 'Time (sec)'
-    self.title = 'Time (sec)'
+    self.label = 'T (C)'
+    self.title = 'Temperature Increment'
 
   def set_clevs(self, clevs=[]):
     self.clevs = clevs
