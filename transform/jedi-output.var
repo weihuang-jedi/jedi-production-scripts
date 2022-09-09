@@ -1,0 +1,41 @@
+bash-4.2$ ncdump -h xainc.20200101_120000z.nc4 
+netcdf xainc.20200101_120000z {
+dimensions:
+        lon = 384 ;
+        lat = 192 ;
+        lev = 127 ;
+        edge = 128 ;
+        time = 1 ;
+variables:
+        double lon(lon) ;
+                lon:long_name = "longitude" ;
+                lon:units = "degrees_east" ;
+        double lat(lat) ;
+                lat:long_name = "latitude" ;
+                lat:units = "degrees_north" ;
+        double ua(time, lev, lat, lon) ;
+                ua:long_name = "eastward_wind" ;
+                ua:units = "ms-1" ;
+        double va(time, lev, lat, lon) ;
+                va:long_name = "northward_wind" ;
+                va:units = "ms-1" ;
+        double T(time, lev, lat, lon) ;
+                T:long_name = "air_temperature" ;
+                T:units = "K" ;
+        double DZ(time, lev, lat, lon) ;
+                DZ:long_name = "layer_thickness" ;
+                DZ:units = "m" ;
+        double delp(time, lev, lat, lon) ;
+                delp:long_name = "air_pressure_thickness" ;
+                delp:units = "pa" ;
+        double phis(time, lat, lon) ;
+                phis:long_name = "sfc_geopotential_height_times_grav" ;
+                phis:units = "m" ;
+        double sphum(time, lev, lat, lon) ;
+                sphum:long_name = "specific_humidity" ;
+                sphum:units = "kgkg-1" ;
+        double o3mr(time, lev, lat, lon) ;
+                o3mr:long_name = "ozone_mass_mixing_ratio" ;
+                o3mr:units = "kgkg-1" ;
+}
+

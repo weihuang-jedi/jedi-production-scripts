@@ -1,0 +1,29 @@
+bash-4.2$ ncdump -h 2020010312/mem001/INPUT/fv3_increment6.nc 
+netcdf fv3_increment6 {
+dimensions:
+        lon = 384 ;
+        lat = 192 ;
+        lev = 127 ;
+        ilev = 128 ;
+variables:
+        float lon(lon) ;
+                lon:units = "degrees_east" ;
+        float lat(lat) ;
+                lat:units = "degrees_north" ;
+        float lev(lev) ;
+        float ilev(ilev) ;
+        float hyai(ilev) ;
+        float hybi(ilev) ;
+        float delz_inc(lev, lat, lon) ;
+        float delp_inc(lev, lat, lon) ;
+        float o3mr_inc(lev, lat, lon) ;
+        float sphum_inc(lev, lat, lon) ;
+        float T_inc(lev, lat, lon) ;
+        float u_inc(lev, lat, lon) ;
+        float v_inc(lev, lat, lon) ;
+
+// global attributes:
+                :source = "GSI" ;
+                :comment = "global analysis increment from calc_increment_ncio" ;
+}
+
