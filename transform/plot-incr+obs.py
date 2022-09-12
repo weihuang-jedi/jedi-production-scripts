@@ -14,7 +14,7 @@ from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import cartopy.feature as cfeature
 import cartopy.mpl.ticker as cticker
 
-from netCDF4 import Dataset as netcdf_dataset
+import netCDF4
 
 #=========================================================================
 class GeneratePlot():
@@ -52,12 +52,23 @@ class GeneratePlot():
       cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
 
       cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
-                     cmap=self.cmapname)
+                         levels=self.clevs, extend=self.extend,
+                         alpha=self.alpha, cmap=self.cmapname)
      #               cmap=self.cmapname, extend='both')
 
       axs[i].set_extent([-180, 180, -90, 90], crs=proj)
       axs[i].coastlines(resolution='auto', color='k')
       axs[i].gridlines(color='lightgrey', linestyle='-', draw_labels=True)
+
+      if(self.add_obs_marker and len(self.obslon) > 0):
+       #adding dotes:
+       #dotes = self.basemap.plot(x, y, 'bo', markersize=12)
+       #dotes = self.basemap.plot(x, y, 'bo', markersize=6)
+        marker = 'x'
+        size = 3
+        color = 'green'
+        dotes = axs[i].scatter(self.obslon, self.obslat,
+                               marker=marker, s=size, color=color)
 
       axs[i].set_title(self.runname[i])
 
@@ -69,7 +80,8 @@ class GeneratePlot():
     cbar_ax = fig.add_axes([0.85, 0.1, 0.05, 0.85])
 
    #Draw the colorbar
-    cbar=fig.colorbar(cs, cax=cbar_ax, orientation='vertical')
+    cbar=fig.colorbar(cs, cax=cbar_ax, pad=self.pad, ticks=self.cblevs,
+                      orientation='vertical')
 
     cbar.set_label(self.label, rotation=90)
 
@@ -92,16 +104,16 @@ class GeneratePlot():
   def set_default(self):
     self.imagename = 'sample.png'
 
-    self.runname = ['GSI', 'JEDI', 'JEDI - GSI']
+    self.runname = ['Halo', 'RR', 'RR - Halo']
 
    #cmapname = coolwarm, bwr, rainbow, jet, seismic
-   #self.cmapname = 'bwr'
+    self.cmapname = 'bwr'
    #self.cmapname = 'coolwarm'
    #self.cmapname = 'rainbow'
-    self.cmapname = 'jet'
+   #self.cmapname = 'jet'
 
-   #self.clevs = np.arange(-0.2, 0.21, 0.01)
-   #self.cblevs = np.arange(-0.2, 0.3, 0.1)
+    self.clevs = np.arange(-0.2, 0.21, 0.01)
+    self.cblevs = np.arange(-0.2, 0.3, 0.1)
 
     self.extend = 'both'
     self.alpha = 0.5
@@ -113,6 +125,10 @@ class GeneratePlot():
 
     self.label = 'Unit (C)'
     self.title = 'Temperature Increment'
+
+    self.obslon = []
+    self.obslat = []
+    self.add_obs_marker = False
 
   def set_label(self, label='Unit (C)'):
     self.label = label
@@ -132,12 +148,34 @@ class GeneratePlot():
   def set_cmapname(self, cmapname):
     self.cmapname = cmapname
 
+  def set_obs_lonlat(self, lon, lat):
+    self.obslon = lon
+    self.obslat = lat
+
+  def switch_marker_on(self):
+    self.add_obs_marker = True
+
+  def switch_marker_off(self):
+    self.add_obs_marker = False
+
+def get_obs_latlon_from_file(filename):
+  ncfile = netCDF4.Dataset(filename, 'r')
+  ncgroup = ncfile['MetaData']
+  lat = ncgroup.variables['latitude'][:]
+  lon = ncgroup.variables['longitude'][:]
+  ncfile.close()
+
+  lon = np.where(lon > 0, lon, lon+360.0)
+
+  return lat, lon
+
 #--------------------------------------------------------------------------------
 if __name__== '__main__':
   debug = 1
   output = 0
-  gsifile = 'fv3_increment6.nc'
-  jedifile = 'xainc.20200101_120000z.nc4'
+  gsifile = '/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/run/solver_halo_aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
+ #jedifile = '/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/run/solver_RoundRobin_aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
+  jedifile = '/work2/noaa/gsienkf/weihuang/jedi/case_study/aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
                                                 'jedifile=', 'gsifile='])
@@ -155,28 +193,41 @@ if __name__== '__main__':
 
   gp = GeneratePlot(debug=debug, output=output)
 
-  ncjedi = netcdf_dataset(jedifile)
-  ncgsi = netcdf_dataset(gsifile)
+  ncjedi = netCDF4.Dataset(jedifile)
+  ncgsi = netCDF4.Dataset(gsifile)
   lats = ncjedi.variables['lat'][:]
   lons = ncjedi.variables['lon'][:]
 
 #-----------------------------------------------------------------------------------------
-  jedi_varlist = ['T', 'ua', 'va',
-                  'sphum', 'delp', 'DZ', 'o3mr']
-  gsi_varlist = ['T_inc', 'u_inc', 'v_inc',
-                 'sphum_inc', 'delp_inc', 'delz_inc', 'o3mr_inc']
+  obsfile = '/work2/noaa/gsienkf/weihuang/jedi/case_study/ioda_v2_data/aircraft_tsen_obs_2020011006.nc4'
+  obslat, obslon = get_obs_latlon_from_file(obsfile)
+  gp.set_obs_lonlat(obslon, obslat)
+  gp.switch_marker_on()
+
+#-----------------------------------------------------------------------------------------
+  clevs = np.arange(-1.0, 1.01, 0.01)
+  cblevs = np.arange(-1.0, 1.1, 0.1)
+
+  gp.set_clevs(clevs=clevs)
+  gp.set_cblevs(cblevs=cblevs)
+
+#-----------------------------------------------------------------------------------------
+ #jedi_varlist = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
+ #gsi_varlist = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
+  jedi_varlist = ['T', 'delp', 'sphum']
+  gsi_varlist = ['T', 'delp', 'sphum']
 
   unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)',
               'Unit (kg/kg)', 'Unit (Pa', 'Unit (m', 'Unit (ppm)']
 
 #-----------------------------------------------------------------------------------------
-  for n in range(1, len(jedi_varlist)):
+  for n in range(len(jedi_varlist)):
     jedivar = ncjedi.variables[jedi_varlist[n]][0, :, :, :]
-    gsivar = ncgsi.variables[gsi_varlist[n]][:, :, :]
+    gsivar = ncgsi.variables[gsi_varlist[n]][0,:, :, :]
 
     nlev, nlat, nlon = jedivar.shape
-   #print('jedivar.shape = ', jedivar.shape)
-   #print('gsivar.shape = ', gsivar.shape)
+    print('jedivar.shape = ', jedivar.shape)
+    print('gsivar.shape = ', gsivar.shape)
 
     gp.set_label(unitlist[n])
 
@@ -185,15 +236,15 @@ if __name__== '__main__':
       v1 = jedivar[lev,:,:]
       v2 = v1 - v0
 
-     #print('v0.shape = ', v0.shape)
-     #print('v1.shape = ', v1.shape)
-     #print('v2.shape = ', v2.shape)
       data = [v0, v1, v2]
 
       title = '%s at Level %d' %(jedi_varlist[n], lev)
       gp.set_title(title)
 
       print('Plotting ', title)
+      print('\tv0.shape = ', v0.shape)
+      print('\tv1.shape = ', v1.shape)
+      print('\tv2.shape = ', v2.shape)
  
       print('\tv0.max: %f, v0.min: %f' %(np.max(v0), np.min(v0)))
       print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
