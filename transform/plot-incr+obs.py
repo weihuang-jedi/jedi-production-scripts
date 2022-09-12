@@ -60,14 +60,14 @@ class GeneratePlot():
       axs[i].coastlines(resolution='auto', color='k')
       axs[i].gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
-      if(self.add_obs_marker and len(self.obslon) > 0):
+      if(self.add_obs_marker and len(self.obslonarray) > 0):
        #adding dotes:
        #dotes = self.basemap.plot(x, y, 'bo', markersize=12)
        #dotes = self.basemap.plot(x, y, 'bo', markersize=6)
         marker = 'x'
         size = 3
         color = 'green'
-        dotes = axs[i].scatter(self.obslon, self.obslat,
+        dotes = axs[i].scatter(self.obslonarray[i], self.obslatarray[i],
                                marker=marker, s=size, color=color)
 
       axs[i].set_title(self.runname[i])
@@ -80,10 +80,27 @@ class GeneratePlot():
     cbar_ax = fig.add_axes([0.85, 0.1, 0.05, 0.85])
 
    #Draw the colorbar
-    cbar=fig.colorbar(cs, cax=cbar_ax, pad=self.pad, ticks=self.cblevs,
-                      orientation='vertical')
-
+   #cbar=fig.colorbar(cs, cax=cbar_ax, pad=self.pad, ticks=self.cblevs,
+   #                  orientation='vertical')
+    cbar=fig.colorbar(cs, cax=cbar_ax, pad=self.pad, orientation='vertical')
     cbar.set_label(self.label, rotation=90)
+
+    cbar.set_ticks(self.cblevs)
+    cblbls = []
+    vmax=self.cblevs[-1]
+    for v in self.cblevs:
+      if(vmax > 10.0):
+        lbl = '%d' %(int(v))
+      elif(vmax > 1.0):
+        lbl = '%4.1f' %(v)
+      elif(vmax > 0.1):
+        lbl = '%5.2f' %(v)
+      else:
+        lbl = '%5.3f' %(v)
+      cblbls.append(lbl)
+    cbar.set_ticklabels(cblbls)
+
+   #cbar.draw_all() 
 
    #Add a big title at the top
     plt.suptitle(self.title)
@@ -104,7 +121,7 @@ class GeneratePlot():
   def set_default(self):
     self.imagename = 'sample.png'
 
-    self.runname = ['Halo', 'RR', 'RR - Halo']
+    self.runname = ['GSI', 'JEDI', 'JEDI - GSI']
 
    #cmapname = coolwarm, bwr, rainbow, jet, seismic
     self.cmapname = 'bwr'
@@ -148,15 +165,25 @@ class GeneratePlot():
   def set_cmapname(self, cmapname):
     self.cmapname = cmapname
 
-  def set_obs_lonlat(self, lon, lat):
-    self.obslon = lon
-    self.obslat = lat
+  def set_obs_lonlat(self, lonarray, latarray):
+    self.obslonarray = lonarray
+    self.obslatarray = latarray
 
   def switch_marker_on(self):
     self.add_obs_marker = True
 
   def switch_marker_off(self):
     self.add_obs_marker = False
+
+def get_gsi_obs_latlon_from_file(filename):
+  ncfile = netCDF4.Dataset(filename, 'r')
+  lat = ncfile.variables['Latitude'][:]
+  lon = ncfile.variables['Longitude'][:]
+  ncfile.close()
+
+  lon = np.where(lon > 0, lon, lon+360.0)
+
+  return lat, lon
 
 def get_obs_latlon_from_file(filename):
   ncfile = netCDF4.Dataset(filename, 'r')
@@ -169,39 +196,93 @@ def get_obs_latlon_from_file(filename):
 
   return lat, lon
 
+def get_plot_levels(var):
+  vmin = np.min(var)
+  vmax = np.max(var)
+
+  print('\tvmin = %f, vmax = %f' %(vmin, vmax))
+
+  pmin = -1.0
+  pmax =  1.0
+
+  nmax = 10
+  ni = 0
+  while(ni < nmax):
+    print('\tni = %d, vmin = %f, pmin = %f, vmax = %f, pmax = %f' %(ni, vmin, pmin, vmax, pmax))
+    if((vmin > pmin) or (vmax < pmax)):
+      break
+    ni += 1
+    pmin = 2.0*pmin
+    pmax = 2.0*pmax
+      
+  ni = 0
+  while(ni < nmax):
+    print('\tni = %d, vmin = %f, pmin = %f, vmax = %f, pmax = %f' %(ni, vmin, pmin, vmax, pmax))
+    if((vmin < pmin) or (vmax > pmax)):
+      break
+    ni += 1
+    pmin = 0.5*pmin
+    pmax = 0.5*pmax
+
+  delt = (pmax - pmin)/200.0
+  clevs = np.arange(pmin, pmax + delt, delt)
+
+  delt = (pmax - pmin)/20.0
+  cblevs = np.arange(pmin, pmax + delt, delt)
+
+  print('\tclevs: ', clevs[::10])
+  print('\tcblevs: ', cblevs)
+
+  return clevs, cblevs
+
 #--------------------------------------------------------------------------------
 if __name__== '__main__':
   debug = 1
   output = 0
-  gsifile = '/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/run/solver_halo_aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
- #jedifile = '/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/run/solver_RoundRobin_aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
-  jedifile = '/work2/noaa/gsienkf/weihuang/jedi/case_study/aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
-
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
-                                                'jedifile=', 'gsifile='])
+                                                'file1=', 'file2='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
     elif o in ('--output'):
       output = int(a)
-    elif o in ('--jedifile'):
-      jedifile = a
-    elif o in ('--gsifile'):
-      gsifile = a
+    elif o in ('--file1'):
+      file1 = a
+    elif o in ('--file2'):
+      file2 = a
     else:
       assert False, 'unhandled option'
 
+#--------------------------------------------------------------------------------
+  dir1 = '/work2/noaa/gsienkf/weihuang/gsi/C96_lgetkf_sondesonly'
+  dir2 = '/work2/noaa/gsienkf/weihuang/production/run/sondes/run_80.40t1n_36p'
+
+  file1 = '%s/2020010112/mem001/INPUT/fv3_increment6.nc' %(dir1)
+  file2 = '%s/analysis/increment/xainc.20200101_120000z.nc4' %(dir2)
+
+#--------------------------------------------------------------------------------
+  obslonarry = []
+  obslatarry = []
+  obs1 = '%s/2020010112/diag_conv_uv_ges.2020010112_ensmean.nc4' %(dir1)
+  obslat, obslon = get_gsi_obs_latlon_from_file(obs1)
+  obslonarry.append(obslon)
+  obslatarry.append(obslat)
+  obs2 = '%s/ioda_v2_data/sondes_uv_obs_2020010112.nc4' %(dir2)
+  obslat, obslon = get_obs_latlon_from_file(obs2)
+  obslonarry.append(obslon)
+  obslatarry.append(obslat)
+
+#--------------------------------------------------------------------------------
+
   gp = GeneratePlot(debug=debug, output=output)
 
-  ncjedi = netCDF4.Dataset(jedifile)
-  ncgsi = netCDF4.Dataset(gsifile)
-  lats = ncjedi.variables['lat'][:]
-  lons = ncjedi.variables['lon'][:]
+  nc1 = netCDF4.Dataset(file1)
+  nc2 = netCDF4.Dataset(file2)
+  lats = nc1.variables['lat'][:]
+  lons = nc1.variables['lon'][:]
 
 #-----------------------------------------------------------------------------------------
-  obsfile = '/work2/noaa/gsienkf/weihuang/jedi/case_study/ioda_v2_data/aircraft_tsen_obs_2020011006.nc4'
-  obslat, obslon = get_obs_latlon_from_file(obsfile)
-  gp.set_obs_lonlat(obslon, obslat)
+  gp.set_obs_lonlat(obslonarry, obslatarry)
   gp.switch_marker_on()
 
 #-----------------------------------------------------------------------------------------
@@ -212,50 +293,53 @@ if __name__== '__main__':
   gp.set_cblevs(cblevs=cblevs)
 
 #-----------------------------------------------------------------------------------------
- #jedi_varlist = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
- #gsi_varlist = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
-  jedi_varlist = ['T', 'delp', 'sphum']
-  gsi_varlist = ['T', 'delp', 'sphum']
+ #varlist1 = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
+ #varlist2 = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
+ #varlist1 = ['T_inc', 'delp_inc', 'sphum_inc']
+ #varlist2 = ['T', 'delp', 'sphum']
+  varlist1 = ['T_inc']
+  varlist2 = ['T']
 
   unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)',
               'Unit (kg/kg)', 'Unit (Pa', 'Unit (m', 'Unit (ppm)']
 
 #-----------------------------------------------------------------------------------------
-  for n in range(len(jedi_varlist)):
-    jedivar = ncjedi.variables[jedi_varlist[n]][0, :, :, :]
-    gsivar = ncgsi.variables[gsi_varlist[n]][0,:, :, :]
+  for n in range(len(varlist1)):
+    var1 = nc1.variables[varlist1[n]][:,:,:]
+    var2 = nc2.variables[varlist2[n]][0,:,:,:]
 
-    nlev, nlat, nlon = jedivar.shape
-    print('jedivar.shape = ', jedivar.shape)
-    print('gsivar.shape = ', gsivar.shape)
+    nlev, nlat, nlon = var1.shape
+    print('var1.shape = ', var1.shape)
+    print('var2.shape = ', var2.shape)
 
     gp.set_label(unitlist[n])
 
     for lev in range(5, nlev, 10):
-      v0 = gsivar[lev,:,:]
-      v1 = jedivar[lev,:,:]
-      v2 = v1 - v0
+      v1 = var1[lev,:,:]
+      v2 = var2[lev,:,:]
 
-      data = [v0, v1, v2]
+      data = [v1, v2]
 
-      title = '%s at Level %d' %(jedi_varlist[n], lev)
+      title = '%s at Level %d' %(varlist1[n], lev)
       gp.set_title(title)
 
       print('Plotting ', title)
-      print('\tv0.shape = ', v0.shape)
       print('\tv1.shape = ', v1.shape)
       print('\tv2.shape = ', v2.shape)
  
-      print('\tv0.max: %f, v0.min: %f' %(np.max(v0), np.min(v0)))
       print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
       print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
 
-      imagename = '%s_lev_%3.3d.png' %(jedi_varlist[n], lev)
+      clevs, cblevs = get_plot_levels(v2)
+      gp.set_clevs(clevs=clevs)
+      gp.set_cblevs(cblevs=cblevs)
+
+      imagename = '%s_lev_%3.3d.png' %(varlist1[n], lev)
       gp.set_imagename(imagename)
 
       gp.plot(lons, lats, data=data)
 
 #-----------------------------------------------------------------------------------------
-  ncjedi.close()
-  ncgsi.close()
+  nc1.close()
+  nc2.close()
 
