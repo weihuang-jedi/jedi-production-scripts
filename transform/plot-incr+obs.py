@@ -89,11 +89,11 @@ class GeneratePlot():
     cblbls = []
     vmax=self.cblevs[-1]
     for v in self.cblevs:
-      if(vmax > 10.0):
+      if(vmax >= 10.0):
         lbl = '%d' %(int(v))
-      elif(vmax > 1.0):
+      elif(vmax >= 1.0):
         lbl = '%4.1f' %(v)
-      elif(vmax > 0.1):
+      elif(vmax >= 0.1):
         lbl = '%5.2f' %(v)
       else:
         lbl = '%5.3f' %(v)
@@ -208,21 +208,21 @@ def get_plot_levels(var):
   nmax = 10
   ni = 0
   while(ni < nmax):
-    print('\tni = %d, vmin = %f, pmin = %f, vmax = %f, pmax = %f' %(ni, vmin, pmin, vmax, pmax))
-    if((vmin > pmin) or (vmax < pmax)):
+   #print('\tni = %d, vmin = %f, pmin = %f, vmax = %f, pmax = %f' %(ni, vmin, pmin, vmax, pmax))
+    if((vmin > pmin) and (vmax < pmax)):
       break
     ni += 1
-    pmin = 2.0*pmin
-    pmax = 2.0*pmax
+    pmin = 10.0*pmin
+    pmax = 10.0*pmax
       
   ni = 0
   while(ni < nmax):
-    print('\tni = %d, vmin = %f, pmin = %f, vmax = %f, pmax = %f' %(ni, vmin, pmin, vmax, pmax))
-    if((vmin < pmin) or (vmax > pmax)):
+   #print('\tni = %d, vmin = %f, pmin = %f, vmax = %f, pmax = %f' %(ni, vmin, pmin, vmax, pmax))
+    if((vmin < pmin) and (vmax > pmax)):
       break
     ni += 1
-    pmin = 0.5*pmin
-    pmax = 0.5*pmax
+    pmin = 0.1*pmin
+    pmax = 0.1*pmax
 
   delt = (pmax - pmin)/200.0
   clevs = np.arange(pmin, pmax + delt, delt)
@@ -230,8 +230,8 @@ def get_plot_levels(var):
   delt = (pmax - pmin)/20.0
   cblevs = np.arange(pmin, pmax + delt, delt)
 
-  print('\tclevs: ', clevs[::10])
-  print('\tcblevs: ', cblevs)
+ #print('\tclevs: ', clevs[::10])
+ #print('\tcblevs: ', cblevs)
 
   return clevs, cblevs
 
@@ -293,15 +293,15 @@ if __name__== '__main__':
   gp.set_cblevs(cblevs=cblevs)
 
 #-----------------------------------------------------------------------------------------
- #varlist1 = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
- #varlist2 = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
- #varlist1 = ['T_inc', 'delp_inc', 'sphum_inc']
- #varlist2 = ['T', 'delp', 'sphum']
-  varlist1 = ['T_inc']
-  varlist2 = ['T']
-
+  varlist1 = ['T_inc', 'u_inc', 'v_inc', 'sphum_inc', 'delp_inc', 'delz_inc', 'o3mr_inc']
+  varlist2 = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
   unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)',
-              'Unit (kg/kg)', 'Unit (Pa', 'Unit (m', 'Unit (ppm)']
+              'Unit (kg/kg)', 'Unit (Pa)', 'Unit (m)', 'Unit (ppm)']
+
+ #varlist1 = ['T_inc']
+ #varlist2 = ['T']
+
+ #unitlist = ['Unit (C)']
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(varlist1)):

@@ -1,5 +1,6 @@
 #=========================================================================
 import sys
+import getopt
 import netCDF4 as nc4
 
 #-----------------------------------------------------------------------------------------
@@ -7,11 +8,28 @@ debug = 1
 
 jedifile = 'xainc.20200101_120000z.nc4'
 gsi_file = 'fv3_increment6.nc'
-nco4incr = 'jedi_increment.nc4'
+newgsifl = 'jedi_increment.nc4'
+
+#-----------------------------------------------------------------------------------------
+opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'gsi_file=',
+                                              'jedifile=', 'newgsifl='])
+for o, a in opts:
+  if o in ('--debug'):
+    debug = int(a)
+  elif o in ('--gsi_file'):
+    gsi_file = a
+  elif o in ('--jedifile'):
+    jedifile = a
+  elif o in ('--newgsifl'):
+    newgsifl = a
+  else:
+    assert False, 'unhandled option'
+
+#-----------------------------------------------------------------------------------------
 
 ncjedi = nc4.Dataset(jedifile, 'r')
 nc_gsi = nc4.Dataset(gsi_file, 'r')
-nc4out = nc4.Dataset(nco4incr, 'w')
+nc4out = nc4.Dataset(newgsifl, 'w')
 
 #-----------------------------------------------------------------------------------------
 gsibaselist = ['lon', 'lat', 'lev', 'ilev', 'hyai', 'hybi']
