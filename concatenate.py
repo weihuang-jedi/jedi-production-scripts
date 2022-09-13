@@ -1,19 +1,31 @@
-import netCDF4
-import numpy
-import xarray
+import os
+from pathlib import Path
+from solo.basic_files import tree
+from solo.ioda import Ioda
 
-#This is the main line of code.
-#tell the script to open any netCDF file in my folder that begins with ‘precip.hour’,
-#the * representing that whatever comes there is a don’t-care string.
-#The way we want to combine the data is using the time coordinate dimension,
-#which is the dimension that defines the relations of the data and order
-#with respect to one another. And so we say combine = ‘by_coords’
-#and the concat_dim = ‘time’. (xarray provides more option to concatenate data
-#with more complex needs like merging along two dimensions. For more, see here)
+def concat_files():
+    workdir = '/work2/noaa/gsienkf/weihuang/jedi/run/rr_maxpoolsize_tpe/run_80.40t1n_36p/obsout'
+    obstype = 'aircraft_tsen_obs_2020011006'
+    output_file_path = './%s.nc4' %(obstype)
 
-ds = xarray.open_mfdataset('/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/run/anna_roundRobin_aircraft_2/run_80.40t1n_36p/obsout/aircraft_tsen_obs_2020011006_*.nc4',combine = 'by_coords', concat_dim="nlocs")
+    output = Path(output_file_path)
 
-#I want to export this data into a combined netCDF, so that’s next.
+    netcdf_files = []
+   
+    nc = 0
+    search_more = True
+    while(search_more):
+      filename = '%s/%s_%4.4d.nc4' %(workdir, obstype, nc)
+      if(os.path.exists(filename)):
+        netcdf_files.append(filename)
+        nc += 1
+      else:
+        search_more = False
 
-ds.to_netcdf('aircraft_tsen_obs_2020011006.nc4')
+    nc = Ioda('obs name')
+    nc.concat_files(netcdf_files, str(output.absolute()))
+
+
+if __name__ == '__main__':
+    concat_files()
 
