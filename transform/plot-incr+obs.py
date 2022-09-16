@@ -209,7 +209,7 @@ def get_plot_levels(var):
   ni = 0
   while(ni < nmax):
    #print('\tni = %d, vmin = %f, pmin = %f, vmax = %f, pmax = %f' %(ni, vmin, pmin, vmax, pmax))
-    if((vmin > pmin) and (vmax < pmax)):
+    if((pmin < vmin) and (pmax > vmax)):
       break
     ni += 1
     pmin = 10.0*pmin

@@ -4,11 +4,12 @@ import getopt
 import netCDF4 as nc4
 
 #=========================================================================
-class ComputeGSImeanIncrements():
-  def __init__(self, debug=0, gsidir=None, datestr=None):
+class ComputeMeanIncrements():
+  def __init__(self, debug=0, datadir=None, datestr=None, outfile=None):
     self.debug = debug
-    self.gsidir = gsidir
+    self.datadir = datadir
     self.datestr = datestr
+    self.outfile = outfile
     self.totalmembers = 80
 
    #Base variables
@@ -18,7 +19,7 @@ class ComputeGSImeanIncrements():
     self.filelist = []
     self.ncarray = []
     for n in range(self.totalmembers):
-      gsiflnm = '%s/%s/mem%3.3d/INPUT/fv3_increment6.nc' %(gsidir, datestr, n+1)
+      gsiflnm = '%s/%s/mem%3.3d/INPUT/fv3_increment6.nc' %(datadir, datestr, n+1)
       if(os.path.exists(gsiflnm)):
        #print('Processing No %d: %s' %(n, gsiflnm))
         ncf = nc4.Dataset(gsiflnm, 'r')
@@ -28,8 +29,7 @@ class ComputeGSImeanIncrements():
         print('GSI increment file: %s does not exist. Stop' %(gsiflnm))
         sys.exit(-1)
 
-    outfilename = 'gsi_mean_incr.nc4'
-    self.ncout = nc4.Dataset(outfilename, 'w')
+    self.ncout = nc4.Dataset(outfile, 'w')
 
     self.process()
 
@@ -40,7 +40,7 @@ class ComputeGSImeanIncrements():
   
   def process(self):
    #copy global attributes all at once via dictionary
-    self.ncout.source = 'GSI increments mean from: %s, date: %s' %(self.gsidir, self.datestr)
+    self.ncout.source = 'GSI increments mean from: %s, date: %s' %(self.datadir, self.datestr)
     self.ncout.comment = 'Calculated for %d members' %(self.totalmembers)
 
     ncf = self.ncarray[0]
@@ -69,7 +69,7 @@ class ComputeGSImeanIncrements():
         var = ncf.variables[name][:,:,:]
         self.vardict[name] = var
 
-    print('vardict.keys(): ', vardict.keys())
+    print('self.vardict.keys(): ', self.vardict.keys())
     for n in range(1, len(self.ncarray)):
       ncf = self.ncarray[n]
       for name in self.vardict.keys():
@@ -92,22 +92,25 @@ class ComputeGSImeanIncrements():
 if __name__== '__main__':
   debug = 1
 
-  gsidir = '/work2/noaa/gsienkf/weihuang/gsi/gsi_C96_lgetkf_sondesonly'
+  datadir = '/work2/noaa/gsienkf/weihuang/gsi/gsi_C96_lgetkf_sondesonly'
   datestr = '2020010200'
+  outfile = 'mean_incr.nc4'
 
  #-----------------------------------------------------------------------------------------
-  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'gsidir=',
-                                                'datestr='])
+  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'datadir=',
+                                                'datestr=', 'outfile='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
-    elif o in ('--gsidir'):
-      gsidir = a
+    elif o in ('--datadir'):
+      datadir = a
     elif o in ('--datestr'):
       datestr = a
+    elif o in ('--outfile'):
+      outfile = a
     else:
       assert False, 'unhandled option'
 
  #-----------------------------------------------------------------------------------------
-  cgi = ComputeGSImeanIncrements(debug=debug, gsidir=gsidir, datestr=datestr)
+  cgi = ComputeMeanIncrements(debug=debug, datadir=datadir, datestr=datestr, outfile=outfile)
 

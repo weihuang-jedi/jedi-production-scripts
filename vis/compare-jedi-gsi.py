@@ -49,6 +49,12 @@ class GeneratePlot():
      #print('Plot No. ', i)
      #print('\tpvar.shape = ', pvar.shape)
 
+      vmin = np.min(pvar)
+      vmax = np.max(pvar)
+
+      if((vmax - vmin) > 1.0e-5):
+        self.clevs, self.cblevs = get_plot_levels(pvar)
+
       cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
 
       cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
@@ -135,6 +141,42 @@ class GeneratePlot():
     self.cmapname = cmapname
 
 #--------------------------------------------------------------------------------
+def get_plot_levels(var):
+  vmin = np.min(var)
+  vmax = np.max(var)
+
+  print('\tget_plot_lelves: vmin = %f, vmax = %f' %(vmin, vmax))
+
+  vcen = 0.5*(vmax + vmin)
+
+  if(vcen >= 1.0):
+    vcen = 10.0*int(vcen/10.0)
+    pmax = 10.0*int(0.5 + (vmax-vcen)/10.0) + vcen
+    pmin = vcen - 10.0*int(0.5 + (vmax-vcen)/10.0)
+  else:
+    pcen = vcen
+    fact = 1.0
+    while(pcen < 1.0):
+      fact *= 10.0
+      pcen *= 10.0
+    vcen = 10.0*int(pcen/10.0)/fact
+    pmax = 10.0*int(0.5 + fact*(vmax-vcen)/10.0)/fact + vcen
+    pmin = vcen - 10.0*int(0.5 + fact*(vmax-vcen)/10.0)/fact
+
+  print('\tget_plot_lelves: pmin = %f, pcen = %f, pmax = %f' %(pmin, vcen, pmax))
+
+  delt = (pmax - pmin)/200.0
+  clevs = np.arange(pmin, pmax + delt, delt)
+
+  delt = (pmax - pmin)/20.0
+  cblevs = np.arange(pmin, pmax + delt, delt)
+
+ #print('\tclevs: ', clevs[::10])
+ #print('\tcblevs: ', cblevs)
+
+  return clevs, cblevs
+
+#--------------------------------------------------------------------------------
 if __name__== '__main__':
   debug = 1
   output = 0
@@ -182,7 +224,7 @@ if __name__== '__main__':
               'Unit (kg/kg)', 'Unit (ppm)', 'Unit (m)']
 
 #-----------------------------------------------------------------------------------------
-  for n in range(len(jedi_varlist)):
+  for n in range(len(varlist)):
     jedivar = ncjedi.variables[varlist[n]][0, :, :, :]
     gsivar = ncgsi.variables[varlist[n]][0, :, :, :]
 
@@ -199,7 +241,7 @@ if __name__== '__main__':
 
       data = [v0, v1, v2]
 
-      title = '%s at Level %d' %(jedi_varlist[n], lev)
+      title = '%s at Level %d' %(varlist[n], lev)
       gp.set_title(title)
 
       print('Plotting ', title)
@@ -211,7 +253,7 @@ if __name__== '__main__':
       print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
       print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
 
-      imagename = '%s_lev_%3.3d.png' %(jedi_varlist[n], lev)
+      imagename = '%s_lev_%3.3d.png' %(varlist[n], lev)
       gp.set_imagename(imagename)
 
       gp.plot(lons, lats, data=data)

@@ -81,7 +81,7 @@
 
  if [ -d stdoutNerr ]
  then
-   mv stdoutNerr.observer
+   mv stdoutNerr stdoutNerr.observer
  fi
 
  concatenate.sh
@@ -90,7 +90,7 @@
 
  if [ -d stdoutNerr ]
  then
-   mv stdoutNerr.solver
+   mv stdoutNerr stdoutNerr.solver
  fi
 
 #sacct --format=JobID,CPUTime,Elapsed,AveVMSize,MaxRSS,NodeList%30 --units=M -j $SLURM_JOBID
