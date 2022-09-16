@@ -7,6 +7,7 @@ from solo.ioda import Ioda
 from multiprocessing import Pool
 
 import getopt
+import json
 
 #--------------------------------------------------------------------------------
 def concat_files(workdir, obstype, datestring, debugstr):
@@ -15,7 +16,7 @@ def concat_files(workdir, obstype, datestring, debugstr):
  #print('datestring: ', datestring)
  #print('debugstr: ', debugstr)
 
-  output_file_path = './%s_%s.nc4' %(obstype, datestring)
+  output_file_path = '%s/%s_%s.nc4' %(workdir, obstype, datestring)
   debug = int(debugstr)
 
   output = Path(output_file_path)
@@ -46,11 +47,13 @@ def multi_run_wrapper(args):
 if __name__ == '__main__':
   tstart = time.time()
 
+  poolsize = 40
   debug = "1"
-  datestring = '2020011006'
+ #datestring = '2020011006'
+  datestring = '2020121500_m'
   workdir = '/work2/noaa/gsienkf/weihuang/jedi/run/rr_maxpoolsize_tpe/run_80.40t1n_36p/obsout'
   obslist = ['aircraft_q_obs', 'aircraft_tsen_obs', 'aircraft_uv_obs',
-             'amsua_n19_obs_m', 'iasi_metop-a_obs_m', 'iasi_metop-b_obs_m',
+             'amsua_n19_obs', 'iasi_metop-a_obs', 'iasi_metop-b_obs',
              'satwind_obs', 'scatwind_obs', 'sfc_ps_obs',
              'sfcship_ps_obs', 'sfcship_q_obs', 'sfcship_tsen_obs',
              'sfcship_tv_obs', 'sfcship_uv_obs',
@@ -59,17 +62,28 @@ if __name__ == '__main__':
              'vadwind_obs', 'windprof_obs']
 
  #--------------------------------------------------------------------------------
-  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'obslist=', 'workdir=', 'datestring='])
+  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'obslist=', 'workdir=',
+              'datestring=', 'poolsize='])
 
   for o, a in opts:
+    print('o: %s, a: %s' %(o, a))
     if o in ('--debug'):
+      print('o: %s, a: %s' %(o, a))
       debug = a
-    elif o in ('-slist'):
-      obslist = a
+    elif o in ('--obslist'):
+      print('o: %s, a: %s' %(o, a))
+      obslist = json.loads(a)
+     #obslist = str(a)
+      print('obslist = ', obslist)
     elif o in ('--workdir'):
+      print('o: %s, a: %s' %(o, a))
       workdir = a
     elif o in ('--datestring'):
+      print('o: %s, a: %s' %(o, a))
       datestring = a
+    elif o in ('--poolsize'):
+      print('o: %s, a: %s' %(o, a))
+      poolsize = int(a)
     else:
       assert False, 'unhandled option'
 
@@ -81,7 +95,7 @@ if __name__ == '__main__':
 
  #--------------------------------------------------------------------------------
   print('optlist: ', optlist)
-  pool = Pool(8)
+  pool = Pool(poolsize)
   pool.map(multi_run_wrapper, optlist)
   pool.close()
 

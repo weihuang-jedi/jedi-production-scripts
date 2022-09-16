@@ -94,7 +94,7 @@ class GeneratePlot():
   def set_default(self):
     self.imagename = 'sample.png'
 
-    self.runname = ['Halo', 'RR', 'RR - Halo']
+    self.runname = ['GSI', 'JEDI', 'JEDI - GSI']
 
    #cmapname = coolwarm, bwr, rainbow, jet, seismic
     self.cmapname = 'bwr'
@@ -142,6 +142,9 @@ if __name__== '__main__':
  #jedifile = '/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/run/solver_RoundRobin_aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
   jedifile = '/work2/noaa/gsienkf/weihuang/jedi/case_study/aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
 
+  gsifile = 'fv3_increment6.nc'
+  jedifile = 'xainc.20200101_120000z.nc4'
+
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
                                                 'jedifile=', 'gsifile='])
   for o, a in opts:
@@ -174,15 +177,16 @@ if __name__== '__main__':
  #jedi_varlist = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
  #gsi_varlist = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
   jedi_varlist = ['T', 'delp', 'sphum']
-  gsi_varlist = ['T', 'delp', 'sphum']
+  gsi_varlist = ['T_inc', 'delp_inc', 'sphum_inc']
 
-  unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)',
-              'Unit (kg/kg)', 'Unit (Pa', 'Unit (m', 'Unit (ppm)']
+  unitlist = ['Unit (C)', 'Unit (Pa)', 'Unit (m', 'Unit (kg/kg)']
+ #unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)',
+ #            'Unit (kg/kg)', 'Unit (Pa)', 'Unit (m)', 'Unit (ppm)']
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(jedi_varlist)):
     jedivar = ncjedi.variables[jedi_varlist[n]][0, :, :, :]
-    gsivar = ncgsi.variables[gsi_varlist[n]][0,:, :, :]
+    gsivar = ncgsi.variables[gsi_varlist[n]][:, :, :]
 
     nlev, nlat, nlon = jedivar.shape
     print('jedivar.shape = ', jedivar.shape)

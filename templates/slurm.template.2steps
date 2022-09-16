@@ -8,17 +8,12 @@
 #SBATCH --partition=bigmem
 #SBATCH --job-name=getkf
 #SBATCH --output=log.getkf
-##SBATCH --mem=0
 
-#source ~/intelenv
  source /work2/noaa/gsienkf/weihuang/production/util/intelenv
 
  ulimit -S unlimited
  ulimit -c unlimited
 
-#export blddir=/work/noaa/gsienkf/weihuang/jedi/src/my.compile
-#export blddir=/work2/noaa/gsienkf/weihuang/jedi/compile_intel
-#export blddir=/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/build
  export blddir=/work2/noaa/gsienkf/weihuang/production/build/fv3-bundle
  export LD_LIBRARY_PATH=${blddir}/lib:$LD_LIBRARY_PATH
  executable=$blddir/bin/fv3jedi_letkf.x
@@ -31,8 +26,8 @@
 #--------------------------------------------------------------------------------------------
  cd WORKDIR
 
- ln -sf ../Data .
- ln -sf ../ioda_v2_data .
+ ln -sf /work2/noaa/gsienkf/weihuang/production/run/Data .
+ ln -sf /work2/noaa/gsienkf/weihuang/production/run/ioda_v2_data .
 
 #--------------------------------------------------------------------------------------------
  if [ -f log.getkf ]
@@ -45,7 +40,7 @@
    mv log.getkf log.getkf.${ns}
  fi
 #--------------------------------------------------------------------------------------------
- for dir in obsout analysis stdoutNerr
+ for dir in obsout analysis stdoutNerr.observer stdoutNerr.solver
  do
    if [ -d ${dir} ]
    then
@@ -60,7 +55,7 @@
 
  rm -f core.*
 
- mkdir -p analysis/mean analysis/increment hofx obsout
+ mkdir -p analysis/mean analysis/increment hofx observer solver
 
  num_member=80
  n=1
@@ -77,12 +72,26 @@
    fi
 
    dirname=mem${member_str}
-   mkdir -p analysis/increment/${dirname}
+   mkdir -p analysis/${dirname}
 
    n=$(( $n + 1 ))
  done
 
- srun -n TOTALCPUS ${executable} getkf.yaml
+ srun -n TOTALCPUS ${executable} getkf.yaml.rr.observer
 
- sacct --format=JobID,CPUTime,Elapsed,AveVMSize,MaxRSS,NodeList%30 --units=M -j $SLURM_JOBID
+ if [ -d stdoutNerr ]
+ then
+   mv stdoutNerr.observer
+ fi
+
+ concatenate.sh
+ 
+ srun -n TOTALCPUS ${executable} getkf.yaml.solver
+
+ if [ -d stdoutNerr ]
+ then
+   mv stdoutNerr.solver
+ fi
+
+#sacct --format=JobID,CPUTime,Elapsed,AveVMSize,MaxRSS,NodeList%30 --units=M -j $SLURM_JOBID
 

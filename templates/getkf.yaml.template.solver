@@ -35,7 +35,7 @@ background:
      #                  u_srf,v_srf,f10m]
 
 driver:
-  read HX from disk: false
+  read HX from disk: true
   do posterior observer: false
  #do test prints: true
   do test prints: false
@@ -86,7 +86,7 @@ local ensemble DA:
 output ensemble increments:
   filetype: auxgrid
   gridtype: gaussian
-  filename: Data/ens/mem%{member}%/getkf.increment.
+  filename: analysis/mem%{member}%/getkf.increment.
 
 output:
   filetype: auxgrid
