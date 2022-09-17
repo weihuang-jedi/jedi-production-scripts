@@ -8,7 +8,7 @@
       obsdatain:
         engine:
           type: H5File
-          obsfile: ioda_v2_data/windprof_obs_2020011006.nc4
+          obsfile: ioda_v2_data/windprof_obs_YYYYMMDDHH.nc4
         obsgrouping:
           group variables: ["station_id", "datetime"]
           sort variable: "air_pressure"
@@ -16,7 +16,7 @@
       obsdataout:
         engine:
           type: H5File
-          obsfile: obsout/windprof_obs_2020011006.nc4
+          obsfile: obsout/windprof_obs_YYYYMMDDHH.nc4
       simulated variables: [eastward_wind, northward_wind]
     obs operator:
       name: VertInterp

@@ -8,7 +8,7 @@
       obsdatain:
         engine:
           type: H5File
-          obsfile: ioda_v2_data/aircraft_tsen_obs_2020011006.nc4
+          obsfile: ioda_v2_data/aircraft_tsen_obs_YYYYMMDDHH.nc4
         obsgrouping:
           group variables: ["station_id", "datetime"]
           sort variable: "air_pressure"
@@ -16,7 +16,7 @@
       obsdataout:
         engine:
           type: H5File
-          obsfile: obsout/aircraft_tsen_obs_2020011006.nc4
+          obsfile: obsout/aircraft_tsen_obs_YYYYMMDDHH.nc4
       simulated variables: [air_temperature]
     obs operator:
       name: VertInterp
@@ -68,7 +68,7 @@
       obsdatain:
         engine:
           type: H5File
-          obsfile: ioda_v2_data/aircraft_uv_obs_2020011006.nc4
+          obsfile: ioda_v2_data/aircraft_uv_obs_YYYYMMDDHH.nc4
         obsgrouping:
           group variables: ["station_id", "datetime"]
           sort variable: "air_pressure"
@@ -76,7 +76,7 @@
       obsdataout:
         engine:
           type: H5File
-          obsfile: obsout/aircraft_uv_obs_2020011006.nc4
+          obsfile: obsout/aircraft_uv_obs_YYYYMMDDHH.nc4
       simulated variables: [eastward_wind, northward_wind]
     obs operator:
       name: VertInterp
@@ -194,7 +194,7 @@
       obsdatain:
         engine:
           type: H5File
-          obsfile: ioda_v2_data/aircraft_q_obs_2020011006.nc4
+          obsfile: ioda_v2_data/aircraft_q_obs_YYYYMMDDHH.nc4
         obsgrouping:
           group variables: ["station_id", "datetime"]
           sort variable: "air_pressure"
@@ -202,7 +202,7 @@
       obsdataout:
         engine:
           type: H5File
-          obsfile: obsout/aircraft_q_obs_2020011006.nc4
+          obsfile: obsout/aircraft_q_obs_YYYYMMDDHH.nc4
       simulated variables: [specific_humidity]
     obs operator:
       name: VertInterp
