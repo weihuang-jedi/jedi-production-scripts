@@ -5,42 +5,47 @@ import netCDF4 as nc4
 
 #=========================================================================
 class ComputeMeanIncrements():
-  def __init__(self, debug=0, datadir=None, datestr=None, outfile=None):
+  def __init__(self, debug=0, workdir=None, datestr=None, outfile=None):
     self.debug = debug
-    self.datadir = datadir
+    self.workdir = workdir
     self.datestr = datestr
     self.outfile = outfile
     self.totalmembers = 80
 
+    print('debug: ', debug)
+    print('workdir: ', workdir)
+    print('datestr: ', datestr)
+    print('outfile: ', outfile)
+
    #Base variables
     self.baselist = ['lon', 'lat', 'lev', 'ilev', 'hyai', 'hybi']
 
-   #open all GSI members increments.
+   #open all members increments.
     self.filelist = []
     self.ncarray = []
     for n in range(self.totalmembers):
-      gsiflnm = '%s/%s/mem%3.3d/INPUT/fv3_increment6.nc' %(datadir, datestr, n+1)
-      if(os.path.exists(gsiflnm)):
-       #print('Processing No %d: %s' %(n, gsiflnm))
-        ncf = nc4.Dataset(gsiflnm, 'r')
-        self.filelist.append(gsiflnm)
+      filename = '%s/%s/mem%3.3d/INPUT/fv3_increment6.nc' %(workdir, datestr, n+1)
+      if(os.path.exists(filename)):
+        print('Processing No %d: %s' %(n, filename))
+        ncf = nc4.Dataset(filename, 'r')
+        self.filelist.append(filename)
         self.ncarray.append(ncf)
       else:
-        print('GSI increment file: %s does not exist. Stop' %(gsiflnm))
+        print('increment file: %s does not exist. Stop' %(filename))
         sys.exit(-1)
 
     self.ncout = nc4.Dataset(outfile, 'w')
 
     self.process()
 
-  def __del__(self):
-    self.ncout.close()
-    for ncf in self.ncarray:
-      ncf.close()
+ #def __del__(self):
+ #  self.ncout.close()
+ #  for ncf in self.ncarray:
+ #    ncf.close()
   
   def process(self):
    #copy global attributes all at once via dictionary
-    self.ncout.source = 'GSI increments mean from: %s, date: %s' %(self.datadir, self.datestr)
+    self.ncout.source = 'GSI increments mean from: %s, date: %s' %(self.workdir, self.datestr)
     self.ncout.comment = 'Calculated for %d members' %(self.totalmembers)
 
     ncf = self.ncarray[0]
@@ -88,22 +93,26 @@ class ComputeMeanIncrements():
        #copy variable attributes all at once via dictionary
         self.ncout.variables[name].setncatts(ncf.variables[name].__dict__)
 
+    self.ncout.close()
+    for ncf in self.ncarray:
+      ncf.close()
+
 #--------------------------------------------------------------------------------
 if __name__== '__main__':
   debug = 1
 
-  datadir = '/work2/noaa/gsienkf/weihuang/gsi/gsi_C96_lgetkf_sondesonly'
+  workdir = '/work2/noaa/gsienkf/weihuang/gsi/gsi_C96_lgetkf_sondesonly'
   datestr = '2020010200'
   outfile = 'mean_incr.nc4'
 
  #-----------------------------------------------------------------------------------------
-  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'datadir=',
+  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'workdir=',
                                                 'datestr=', 'outfile='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
-    elif o in ('--datadir'):
-      datadir = a
+    elif o in ('--workdir'):
+      workdir = a
     elif o in ('--datestr'):
       datestr = a
     elif o in ('--outfile'):
@@ -112,5 +121,5 @@ if __name__== '__main__':
       assert False, 'unhandled option'
 
  #-----------------------------------------------------------------------------------------
-  cgi = ComputeMeanIncrements(debug=debug, datadir=datadir, datestr=datestr, outfile=outfile)
+  cmi = ComputeMeanIncrements(debug=debug, workdir=workdir, datestr=datestr, outfile=outfile)
 
