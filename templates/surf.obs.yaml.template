@@ -6,13 +6,17 @@
       io pool:
         max pool size: 1
       obsdatain:
-        obsfile: ioda_v2_data/sfc_ps_obs_2020011006.nc4
+        engine:
+          type: H5File
+          obsfile: ioda_v2_data/sfc_ps_obs_2020011006.nc4
         obsgrouping:
           group variables: ["station_id", "datetime"]
           sort variable: "air_pressure"
           sort order: "descending"
       obsdataout:
-        obsfile: obsout/sfc_ps_obs_2020011006.nc4
+        engine:
+          type: H5File
+          obsfile: obsout/sfc_ps_obs_2020011006.nc4
       simulated variables: [surface_pressure]
     obs operator:
       name: Composite
@@ -81,13 +85,17 @@
       io pool:
         max pool size: 1
       obsdatain:
-        obsfile: ioda_v2_data/sondes_ps_obs_2020011006.nc4
+        engine:
+          type: H5File
+          obsfile: ioda_v2_data/sondes_ps_obs_2020011006.nc4
         obsgrouping:
           group variables: ["station_id", "datetime"]
           sort variable: "air_pressure"
           sort order: "descending"
       obsdataout:
-        obsfile: obsout/sondes_ps_obs_2020011006.nc4
+        engine:
+          type: H5File
+          obsfile: obsout/sondes_ps_obs_2020011006.nc4
       simulated variables: [surface_pressure]
     obs operator:
       name: Composite
@@ -156,13 +164,17 @@
       io pool:
         max pool size: 1
       obsdatain:
-        obsfile: ioda_v2_data/sfcship_ps_obs_2020011006.nc4
+        engine:
+          type: H5File
+          obsfile: ioda_v2_data/sfcship_ps_obs_2020011006.nc4
         obsgrouping:
           group variables: ["station_id", "datetime"]
           sort variable: "air_pressure"
           sort order: "descending"
       obsdataout:
-        obsfile: obsout/sfcship_ps_obs_2020011006.nc4
+        engine:
+          type: H5File
+          obsfile: obsout/sfcship_ps_obs_2020011006.nc4
       simulated variables: [surface_pressure]
     obs operator:
       name: Composite

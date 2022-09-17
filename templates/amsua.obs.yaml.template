@@ -6,9 +6,13 @@
       io pool:
         max pool size: 1
       obsdatain:
-        obsfile: ioda_v2_data/amsua_n19_obs_2020121500_m.nc4
+        engine:
+          type: H5File
+          obsfile: ioda_v2_data/amsua_n19_obs_YYYYMMDDHH_m.nc4
       obsdataout:
-        obsfile: obsout/amsua_n19_obs_2020121500_m.nc4
+        engine:
+          type: H5File
+          obsfile: obsout/amsua_n19_obs_YYYYMMDDHH_m.nc4
       simulated variables: [brightness_temperature]
       channels: &amsua_n19_channels 4-6,9-14
     obs operator:

@@ -28,7 +28,7 @@
  echo "Case: $casename"
  casedir=${topdir}/${casename}
 
- cd ${casedir}
+#cd ${casedir}
 
  workdir=${casedir}/run_${NUMMEM}.${taskspernode}t${nodes}n_${totalcpus}p
  rm -rf ${workdir}
@@ -49,8 +49,12 @@
      -e "s?DATETIME?${datetime}?g" \
      ${templatedir}/getkf.yaml.template.rr.observer > getkf.yaml.rr.observer
 
+#sed -e "s?YYYYMMDDHH?${yyyymmddhh}?g" \
+#    -e "s?MAXPOOLSIZE?${totalcpus}?g" \
+#    ${templatedir}/${casename}.obs.yaml.template.rr.observer >> getkf.yaml.rr.observer
+
  sed -e "s?YYYYMMDDHH?${yyyymmddhh}?g" \
-     -e "s?MAXPOOLSIZE?${totalcpus}?g" \
+     -e "s?MAXPOOLSIZE?1?g" \
      ${templatedir}/${casename}.obs.yaml.template.rr.observer >> getkf.yaml.rr.observer
 
  sed -e "s?LAYOUT?${MYLAYOUT}?g" \
@@ -58,7 +62,10 @@
      -e "s?DATETIME?${datetime}?g" \
      ${templatedir}/getkf.yaml.template.solver > getkf.yaml.solver
 
- sed -e "s?YYYYMMDDHH?${yyyymmddhh}?g" \
+#sed -e "s?YYYYMMDDHH?${yyyymmddhh}?g" \
+#    ${templatedir}/${casename}.obs.yaml.template.solver >> getkf.yaml.solver
+
+ sed -e "s?YYYYMMDDHH?${yyyymmddhh}_0000?g" \
      ${templatedir}/${casename}.obs.yaml.template.solver >> getkf.yaml.solver
 
  obsdir=${workdir}/observer

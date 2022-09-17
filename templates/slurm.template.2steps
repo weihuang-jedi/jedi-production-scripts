@@ -84,7 +84,7 @@
    mv stdoutNerr stdoutNerr.observer
  fi
 
- concatenate.sh
+#concatenate.sh
  
  srun -n TOTALCPUS ${executable} getkf.yaml.solver
 

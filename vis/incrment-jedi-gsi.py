@@ -252,8 +252,8 @@ if __name__== '__main__':
       clevs = np.arange(-1.0, 1.01, 0.01)
       cblevs = np.arange(-1.0, 1.1, 0.1)
     elif('o3mr_inc' == varlist[n]):
-      clevs = 1.0-e8*np.arange(-1.0, 1.01, 0.01)
-      cblevs = 1.0-e8*np.arange(-1.0, 1.1, 0.1)
+      clevs = 1.0e-8*np.arange(-1.0, 1.01, 0.01)
+      cblevs = 1.0e-8*np.arange(-1.0, 1.1, 0.1)
     elif('sphum_inc' == varlist[n]):
       clevs = 0.001*np.arange(-1.0, 1.01, 0.01)
       cblevs = 0.001*np.arange(-1.0, 1.1, 0.1)

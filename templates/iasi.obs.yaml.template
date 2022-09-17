@@ -6,9 +6,13 @@
       io pool:
         max pool size: 1
       obsdatain:
-        obsfile: ioda_v2_data/iasi_metop-a_obs_2020121500_m.nc4
+        engine:
+          type: H5File
+          obsfile: ioda_v2_data/iasi_metop-a_obs_YYYYMMDDHH_m.nc4
       obsdataout:
-        obsfile: obsout/iasi_metop-a_obs_2020121500_m.nc4
+        engine:
+          type: H5File
+          obsfile: obsout/iasi_metop-a_obs_YYYYMMDDHH_m.nc4
       simulated variables: [brightness_temperature]
       channels: 16,38,49,51,55,57,59,61,63,66,
                 70,72,74,79,81,83,85,87,104,106,
@@ -87,9 +91,13 @@
       io pool:
         max pool size: 1
       obsdatain:
-        obsfile: ioda_v2_data/iasi_metop-b_obs_2020121500_m.nc4
+        engine:
+          type: H5File
+          obsfile: ioda_v2_data/iasi_metop-b_obs_YYYYMMDDHH_m.nc4
       obsdataout:
-        obsfile: obsout/iasi_metop-b_obs_2020121500_m.nc4
+        engine:
+          type: H5File
+          obsfile: obsout/iasi_metop-b_obs_YYYYMMDDHH_m.nc4
       simulated variables: [brightness_temperature]
       channels: 16,38,49,51,55,57,59,61,63,66,
                 70,72,74,79,81,83,85,87,104,106,

@@ -6,13 +6,17 @@
       io pool:
         max pool size: 1
       obsdatain:
-        obsfile: observer/sondes_tsen_obs_YYYYMMDDHH.nc4
+        engine:
+          type: H5File
+          obsfile: observer/sondes_tsen_obs_YYYYMMDDHH.nc4
         obsgrouping:
           group variables: ["station_id", "dateTime"]
           sort variable: "air_pressure"
           sort order: "descending"
       obsdataout:
-        obsfile: solver/sondes_tsen_obs_YYYYMMDDHH.nc4
+        engine:
+          type: H5File
+          obsfile: solver/sondes_tsen_obs_YYYYMMDDHH.nc4
       simulated variables: [air_temperature]
     obs operator:
       name: VertInterp
@@ -62,13 +66,17 @@
       io pool:
         max pool size: 1
       obsdatain:
-        obsfile: observer/sondes_tv_obs_YYYYMMDDHH.nc4
+        engine:
+          type: H5File
+          obsfile: observer/sondes_tv_obs_YYYYMMDDHH.nc4
         obsgrouping:
           group variables: ["station_id", "dateTime"]
           sort variable: "air_pressure"
           sort order: "descending"
       obsdataout:
-        obsfile: solver/sondes_tv_obs_YYYYMMDDHH.nc4
+        engine:
+          type: H5File
+          obsfile: solver/sondes_tv_obs_YYYYMMDDHH.nc4
       simulated variables: [virtual_temperature]
     obs operator:
       name: VertInterp
@@ -145,13 +153,17 @@
       io pool:
         max pool size: 1
       obsdatain:
-        obsfile: observer/sondes_uv_obs_YYYYMMDDHH.nc4
+        engine:
+          type: H5File
+          obsfile: observer/sondes_uv_obs_YYYYMMDDHH.nc4
         obsgrouping:
           group variables: ["station_id", "dateTime"]
           sort variable: "air_pressure"
           sort order: "descending"
       obsdataout:
-        obsfile: solver/sondes_uv_obs_YYYYMMDDHH.nc4
+        engine:
+          type: H5File
+          obsfile: solver/sondes_uv_obs_YYYYMMDDHH.nc4
       simulated variables: [eastward_wind, northward_wind]
     obs operator:
       name: VertInterp
@@ -267,13 +279,17 @@
       io pool:
         max pool size: 1
       obsdatain:
-        obsfile: observer/sondes_q_obs_YYYYMMDDHH.nc4
+        engine:
+          type: H5File
+          obsfile: observer/sondes_q_obs_YYYYMMDDHH.nc4
         obsgrouping:
           group variables: ["station_id", "dateTime"]
           sort variable: "air_pressure"
           sort order: "descending"
       obsdataout:
-        obsfile: solver/sondes_q_obs_YYYYMMDDHH.nc4
+        engine:
+          type: H5File
+          obsfile: solver/sondes_q_obs_YYYYMMDDHH.nc4
       simulated variables: [specific_humidity]
     obs operator:
       name: VertInterp
