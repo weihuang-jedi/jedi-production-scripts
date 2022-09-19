@@ -11,9 +11,13 @@
  taskspernode=40
  NUMMEM=80
 
- totalcpus=36
- nodes=1
- MYLAYOUT="2,3"
+#totalcpus=36
+#nodes=1
+#MYLAYOUT="2,3"
+
+ totalcpus=288
+ nodes=8
+ MYLAYOUT="8,6"
 
 #templatedir=/work2/noaa/gsienkf/weihuang/production/util/templates
  templatedir=/work2/noaa/gsienkf/weihuang/production/run/templates
