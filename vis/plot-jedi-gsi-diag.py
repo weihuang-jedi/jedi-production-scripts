@@ -109,28 +109,38 @@ def plot_lines(plevs, gsirms, jedirms, header='Temp RMS', output=0):
 
   title = header
 
-  nl = len(plevs)
+ #print('plevs = ', plevs)
+ #print('gsirms = ', gsirms)
+ #print('jedirms = ', jedirms)
+
+  print('pressure   gsirms    jedrms')
+  for n in range(len(plevs)):
+    print('%4.0f %7.4f %7.4f' %(plevs[n], gsirms[n], jedirms[n]))
+
   x = []
   xlabels = []
-  for k in range(0, 12):
+  for k in range(0, 5):
     lbl = '%d' %(k)
     xlabels.append(lbl)
     x.append(k)
+
+  y = np.linspace(0,1000,11)
+  ylabels = []
+  for v in y:
+    lbl = '%d' %(1000-v)
+    ylabels.append(lbl)
 
   fig = plt.figure()
   ax = plt.subplot()
 
   pmin = 0.0
   pmax = np.max(jedirms)
+  yp = []
+  for pres in plevs:
+    yp.append(1000-pres)
 
-  ax.plot(plevs[::-1], gsirms[::-1], color='blue', linewidth=2, alpha=0.9)
-  ax.plot(plevs[::-1], jedirms[::-1], color='red', linewidth=2, alpha=0.9)
-
-  ylp = np.linspace(0,1000,11)
-  ylabels = []
-  for pv in ylp:
-    lbl = '%d' %(1000-pv)
-    ylabels.append(lbl)
+  ax.plot(gsirms, yp, color='blue', linewidth=2, alpha=0.9)
+  ax.plot(jedirms, yp, color='red', linewidth=2, alpha=0.9)
 
   plt.xscale('linear')
  #plt.xscale('log', base=2)
@@ -138,7 +148,7 @@ def plot_lines(plevs, gsirms, jedirms, header='Temp RMS', output=0):
  #plt.yscale('log', base=10)
   plt.xticks(x, xlabels)
  #plt.xticks(x, xlabels, rotation ='vertical')
-  plt.yticks(ylp, ylabels)
+  plt.yticks(y, ylabels)
 
   plt.grid()
 
@@ -165,7 +175,7 @@ def plot_lines(plevs, gsirms, jedirms, header='Temp RMS', output=0):
 
  #Create the legend
   fig.legend(ax, labels=labels,
-         loc="upper left",   # Position of legend
+         loc="center right",   # Position of legend
          fontsize=8,
          borderpad=1.2,
          labelspacing=1.2,
@@ -198,10 +208,30 @@ class Plot_JEDI_GSI_Diag():
     except Exception:
       pass
 
-    x = times - times[0]
-    y = plevs
     nrows = 1
     ncols = len(data)
+
+    x = times - times[0]
+    y = []
+    for pres in plevs:
+      y.append(1000-pres)
+
+    ylp = np.linspace(0,1000,11)
+    yt = []
+    ylabels = []
+    for pv in ylp:
+      lbl = '%d' %(1000-pv)
+      yt.append(pv)
+      ylabels.append(lbl)
+
+    xv = 0
+    xt = [0]
+    xlabels = [0]
+    while(xv < x[-1]):
+      xv += 6
+      lbl = '%d' %(xv)
+      xlabels.append(lbl)
+      xt.append(xv)
 
     fig, axs = plt.subplots(nrows=nrows,ncols=ncols,
                             figsize=(11,8.5))
@@ -244,8 +274,8 @@ class Plot_JEDI_GSI_Diag():
       axs[i].set_xlabel('Hours', fontsize=10)
       axs[i].set_ylabel('hPa', fontsize=10)
 
-      major_ticks_top=np.linspace(0,1000,11)
-      axs[i].set_yticks(major_ticks_top)
+      axs[i].set_xticks(xt, xlabels)
+      axs[i].set_yticks(yt, ylabels)
 
      #minor_ticks_top=np.linspace(0,60,13)
      #minor_ticks_top=np.linspace(-60,0,13)
@@ -400,10 +430,10 @@ if __name__== '__main__':
   gsirms = gsi_stats['rms_temp']
   jedirms = jedi_stats['rms_temp']
 
-  print('len(p) = ', len(p))
-  print('p = ', p)
-  print('len(gsirms) = ', len(gsirms))
-  print('gsirms = ', gsirms)
+ #print('len(p) = ', len(p))
+ #print('p = ', p)
+ #print('len(gsirms) = ', len(gsirms))
+ #print('gsirms = ', gsirms)
 
   plot_lines(p, gsirms, jedirms, header='Temp RMS')
 
