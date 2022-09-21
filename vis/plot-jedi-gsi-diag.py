@@ -99,7 +99,7 @@ def read_stats(filename):
   return stats
 
 #=========================================================================
-def plot_lines(plevs, gsirms, jedirms, header='Temp RMS', output=0):
+def plot_lines(plevs, gsirms, jedirms, header='temp', output=0):
   try:
     plt.close('all')
     plt.clf()
@@ -107,7 +107,7 @@ def plot_lines(plevs, gsirms, jedirms, header='Temp RMS', output=0):
   except Exception:
     pass
 
-  title = header
+  title = header + ' RMS'
 
  #print('plevs = ', plevs)
  #print('gsirms = ', gsirms)
@@ -117,9 +117,16 @@ def plot_lines(plevs, gsirms, jedirms, header='Temp RMS', output=0):
   for n in range(len(plevs)):
     print('%4.0f %7.4f %7.4f' %(plevs[n], gsirms[n], jedirms[n]))
 
-  x = []
-  xlabels = []
-  for k in range(0, 5):
+  pmin = 0.0
+  pmax = np.max(jedirms)
+  vmax = 0.0
+ 
+  x = [0]
+  xlabels = ['0']
+  k = 0
+  while(vmax < pmax):
+    k += 1
+    vmax += 1.0
     lbl = '%d' %(k)
     xlabels.append(lbl)
     x.append(k)
@@ -133,8 +140,6 @@ def plot_lines(plevs, gsirms, jedirms, header='Temp RMS', output=0):
   fig = plt.figure()
   ax = plt.subplot()
 
-  pmin = 0.0
-  pmax = np.max(jedirms)
   yp = []
   for pres in plevs:
     yp.append(1000-pres)
@@ -154,11 +159,11 @@ def plot_lines(plevs, gsirms, jedirms, header='Temp RMS', output=0):
 
  #Same limits for everybody!
   print('pmin: %f, pmax: %f' %(pmin, pmax))
-  plt.xlim(x[0], x[-1])
+  plt.xlim(0, vmax)
   plt.ylim(0, 1000)
  
  #general title
-  title = 'GSI and JEDI rms'
+  title = 'GSI and JEDI %s rms' %(header)
   plt.suptitle(title, fontsize=16, fontweight=1, color='black')
 
  #Create a big subplot
@@ -185,7 +190,7 @@ def plot_lines(plevs, gsirms, jedirms, header='Temp RMS', output=0):
  #Adjust the scaling factor to fit your legend text completely outside the plot
  #(smaller value results in more space being made for the legend)
 
-  imgname = 'rms_gsi_jedi.png'
+  imgname = '%s_rms.png' %(header)
 
   if(output):
     plt.savefig(imgname)
@@ -283,6 +288,7 @@ class Plot_JEDI_GSI_Diag():
 
      #Draw the colorbar
       cbar=plt.colorbar(cs, ax=axs[i], pad=self.pad,
+                        ticks=self.cblevs,
                         orientation='horizontal')
 
      #cbar.set_label(self.label, rotation=90)
@@ -299,7 +305,7 @@ class Plot_JEDI_GSI_Diag():
 
     if(self.output):
       if(self.imagename is None):
-        imagename = 't_aspect.png'
+        imagename = 'sample.png'
       else:
         imagename = self.imagename
       plt.savefig(imagename)
@@ -435,7 +441,12 @@ if __name__== '__main__':
  #print('len(gsirms) = ', len(gsirms))
  #print('gsirms = ', gsirms)
 
-  plot_lines(p, gsirms, jedirms, header='Temp RMS')
+  plot_lines(p, gsirms, jedirms, header='temp', output=output)
+
+  gsirms = gsi_stats['rms_wind']
+  jedirms = jedi_stats['rms_wind']
+
+  plot_lines(p, gsirms, jedirms, header='wind', output=output)
 
   ncgsi = nc4.Dataset(gsifile, 'r')
   ncjedi = nc4.Dataset(jedifile, 'r')
