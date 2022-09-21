@@ -17,31 +17,34 @@ def read_stats(filename):
   stats = {}
 
  #fin.write('# %s %s %s %s-%s\n' % (datapath,self.runid,self.hem,self.sdate,self.edate))
-  item = lines[0].strip().split('- ')
-  print('item = ', item)
+  item = lines[0].strip().split(' ')
+ #print('item = ', item)
   stats['datapath'] = item[1]
   stats['runid'] = item[2]
   stats['hem'] = item[3]
-  stats['sdate'] = item[4]
-  stats['edate'] = item[5]
-
+  dateitem = item[4].split('-')
+  stats['sdate'] = dateitem[0]
+  stats['edate'] = dateitem[1]
 
  #fin.write('# press wind_count wind_rms temp_count temp_rms temp_bias humid_rmsx1000 humid_biasx1000\n')
   item = lines[1].strip().split(' ')
-  stats['stats_name'] = item[1:-1]
-  print("stats['stats_name'] = ", stats['stats_name'])
+  stats['stats_name'] = item[1:]
+ #print("stats['stats_name'] = ", stats['stats_name'])
 
  #fin.write('# 1000-0 %10i %7.4f %10i %7.4f %7.4f %10i %7.4f %7.4f\n' % (count_wind.sum(), rms_wind.mean(), count_temp.sum(), rms_temp.mean(), bias_temp.mean(), count_humid.sum(), 1000*rms_humid.mean(), 1000*bias_humid.mean()))
-  item = lines[2].strip().split('- ')
-  print('item = ', item)
-  stats['count_wind_sum'] = float(item[3])
-  stats['rms_wind_mean'] = float(item[4])
-  stats['count_temp_sum'] = float(item[5])
-  stats['rms_temp_mean'] = float(item[6])
-  stats['bias_temp_mean'] = float(item[7])
-  stats['count_humid_sum'] = float(item[8])
-  stats['rms_humid_mean'] = float(item[9])
-  stats['bias_humid_mean'] = float(item[10])
+  sumline = lines[2]
+  while(sumline.find('  ') >= 0):
+    sumline = sumline.replace('  ', ' ')
+  item = sumline.strip().split(' ')
+ #print('item = ', item)
+  stats['count_wind_sum'] = float(item[2])
+  stats['rms_wind_mean'] = float(item[3])
+  stats['count_temp_sum'] = float(item[4])
+  stats['rms_temp_mean'] = float(item[5])
+  stats['bias_temp_mean'] = float(item[6])
+  stats['count_humid_sum'] = float(item[7])
+  stats['rms_humid_mean'] = float(item[8])
+  stats['bias_humid_mean'] = float(item[9])
 
   stats['p'] = []
   stats['count_wind'] = []
@@ -53,7 +56,10 @@ def read_stats(filename):
   stats['rms_humid'] = []
   stats['bias_humid'] = []
   for n in range(3, len(lines)):
-    item = lines[n].strip().split(' ')
+    line = lines[n].strip()
+    while(line.find('  ') >= 0):
+      line = line.replace('  ', ' ')
+    item = line.strip().split(' ')
     if(item[0] != '#'):
       stats['p'].append(float(item[0]))
       stats['count_wind'].append(float(item[1]))
@@ -69,8 +75,133 @@ def read_stats(filename):
       stats['rms_temp_mean'] = float(item[2])
       stats['rms_humid_mean'] = float(item[3])
 
-    print('stats = ', stats)
-    return stats
+  print('stats = ', stats)
+  return stats
+
+#=========================================================================
+def plot(self):
+  try:
+    plt.close('all')
+    plt.clf()
+    plt.cla()
+  except Exception:
+    pass
+
+  title = '%s Timing' %(self.casename)
+
+  nl = len(self.nodelist)
+  x = np.zeros((nl), dtype=float)
+  y = np.zeros((nl), dtype=float)
+  z = np.zeros((nl), dtype=float)
+  xlabels = []
+  for k in range(nl):
+    x[k] = self.nodelist[k]
+    lbl = '%d' %(self.nodelist[k])
+    xlabels.append(lbl)
+
+  fig = plt.figure()
+  ax = plt.subplot()
+
+  pmin = 0.001*self.paravgtimelist[0][0]/60.0
+  pmax = pmin
+
+  txtname = 'timing_%s.csv' %(self.casename)
+  OPF = open(txtname, 'w')
+  header = '%40s, %8s\n' %('Function Name', 'Avg Time (seconds)')
+  OPF.write(header)
+
+  for i in range(len(self.fullfunction_list)):
+    for k in range(nl):
+      y[k] = 0.001*self.paravgtimelist[k][i]/60.0
+      if(pmin > y[k]):
+        pmin = y[k]
+      if(pmax < y[k]):
+        pmax = y[k]
+   #print('y = ', y)
+    ax.plot(x, y, color=self.colorlist[i], linewidth=2, alpha=0.9)
+    txtinfo = '%40s, %8.2f\n' %(self.fullfunction_list[i], y[0])
+    OPF.write(txtinfo)
+  OPF.close()
+
+  pvmin = 1.0
+  while(pvmin > pmin):
+    pvmin *= 0.5
+  pvmax = 1.0
+  while(pvmax < pmax):
+    pvmax *= 2.0
+  pvmin = 0.125
+  pvmax = 256.0
+
+  ylp = []
+  ylabels = []
+  pv = pvmin
+  while(pv <= pvmax):
+    ylp.append(pv)
+    lbl = '%6.2f' %(pv)
+    ylabels.append(lbl)
+    pv *= 2.0
+
+  if(self.linear):
+    plt.xscale('linear')
+  else:
+    plt.xscale('log', base=2)
+    plt.yscale('log', base=2)
+   #plt.yscale('log', base=10)
+    plt.xticks(x, xlabels)
+   #plt.xticks(x, xlabels, rotation ='vertical')
+    plt.yticks(ylp, ylabels)
+
+  if(self.linear == 0):
+    for i in range(len(self.fullfunction_list)):
+      for k in range(nl):
+        fact = 1.0/np.log2(2*self.nodelist[k])
+        z[k] = 0.001*self.paravgtimelist[0][i]*fact/60.0
+     #https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html
+      ax.plot(x, z, color='black', linewidth=1, alpha=0.5, linestyle='dotted')
+
+  plt.grid()
+
+ #Same limits for everybody!
+  print('pmin: %f, pmax: %f' %(pmin, pmax))
+  plt.xlim(x[0], x[-1])
+  plt.ylim(pmin, pmax)
+ 
+ #general title
+  title = '%s Timing (in seconds), min: %8.2f, max: %8.2f' %(self.casename, pmin, pmax)
+ #plt.suptitle(title, fontsize=13, fontweight=0, color='black', style='italic', y=1.02)
+  plt.suptitle(title, fontsize=16, fontweight=1, color='black')
+
+ #Create a big subplot
+  bs = fig.add_subplot(111, frameon=False)
+  plt.subplots_adjust(bottom=0.2, right=0.70, top=0.8)
+
+ #hide tick and tick label of the big axes
+  plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+
+  bs.set_xlabel('Node', labelpad=10) # Use argument `labelpad` to move label downwards.
+  bs.set_ylabel('Time (second)', labelpad=20)
+
+ #Create the legend
+  fig.legend(ax, labels=self.function_list,
+         loc="center right",   # Position of legend
+         fontsize=8,
+         borderpad=1.2,
+         labelspacing=1.2,
+         handlelength=1.5
+         )
+
+ #Adjust the scaling factor to fit your legend text completely outside the plot
+ #(smaller value results in more space being made for the legend)
+
+  if(self.linear):
+    imgname = 'lin_%s_timing.png' %(self.casename)
+  else:
+    imgname = 'log_%s_timing.png' %(self.casename)
+
+  if(self.output):
+    plt.savefig(imgname)
+  else:
+    plt.show()
 
 #=========================================================================
 class Plot_JEDI_GSI_Diag():
@@ -81,8 +212,15 @@ class Plot_JEDI_GSI_Diag():
     self.set_default()
 
   def plot_contour(self, times, plevs, data=[]):
-    nrows = len(data)
-    ncols = 1
+    try:
+      plt.close('all')
+      plt.clf()
+      plt.cla()
+    except Exception:
+      pass
+
+    nrows = 1
+    ncols = len(data)
 
     fig, axs = plt.subplots(nrows=nrows,ncols=ncols,
                             figsize=(11,8.5))
@@ -104,24 +242,20 @@ class Plot_JEDI_GSI_Diag():
      #if((vmax - vmin) > 1.0e-5):
      #  self.clevs, self.cblevs = get_plot_levels(pvar)
 
-      cs=axs[i].contourf(times, plevs, data,
-                         levels=self.clevs, extend=self.extend,
+      cs=axs[i].contourf(pvar,
                          alpha=self.alpha, cmap=self.cmapname)
+     #cs=axs[i].contourf(times, plevs[::-1], pvar,
+     #                   levels=self.clevs, extend=self.extend,
+     #                   alpha=self.alpha, cmap=self.cmapname)
 
       axs[i].set_title(self.runname[i])
 
-   #Adjust the location of the subplots on the page to make room for the colorbar
-    fig.subplots_adjust(bottom=0.1, top=0.9, left=0.05, right=0.8,
-                        wspace=0.02, hspace=0.02)
+     #Draw the colorbar
+     #cbar=plt.colorbar(cs, cax=axs[i], pad=self.pad,
+     #                  orientation='horizontal')
 
-   #Add a colorbar axis at the bottom of the graph
-    cbar_ax = fig.add_axes([0.85, 0.1, 0.05, 0.85])
-
-   #Draw the colorbar
-    cbar=fig.colorbar(cs, cax=cbar_ax, pad=self.pad,
-                      orientation='vertical')
-
-    cbar.set_label(self.label, rotation=90)
+     #cbar.set_label(self.label, rotation=90)
+     #cbar.set_label(self.label)
 
    #Add a big title at the top
     plt.suptitle(self.title)
@@ -246,8 +380,8 @@ if __name__== '__main__':
 #-----------------------------------------------------------------------------------------
   pjgd = Plot_JEDI_GSI_Diag(debug=debug, output=output)
 
-  gsi_stats = read_stats(gsi_stats)
-  jedi_stats = read_stats(jedi_stats)
+  gsi_stats = read_stats('gsi_stats')
+  jedi_stats = read_stats('jedi_stats')
 
   ncgsi = nc4.Dataset(gsifile, 'r')
   ncjedi = nc4.Dataset(jedifile, 'r')
@@ -278,6 +412,8 @@ if __name__== '__main__':
 
     v0 = gsivar.transpose()
     v1 = jedivar.transpose()
+   #v0 = gsivar
+   #v1 = jedivar
     v2 = v1 - v0
 
     data = [v0, v1, v2]
