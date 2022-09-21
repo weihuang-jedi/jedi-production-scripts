@@ -6,7 +6,27 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+#from dateutil.rrule import *
+#from dateutil.parser import *
+from datetime import *
+from datetime import timedelta
+
 import netCDF4 as nc4
+
+#=========================================================================
+def hour2date(hour):
+  st = datetime(1970, 1, 1, 0, 0, 0)
+  dt = timedelta(hours=hour)
+  ct = st + dt
+
+  date = ct.strftime("%Y-%m-%d:%H")
+
+  print('st = ', st)
+  print('ct = ', ct)
+  print('dt = ', dt)
+  print('date = ', date)
+
+  return date
 
 #=========================================================================
 def read_stats(filename):
@@ -75,11 +95,11 @@ def read_stats(filename):
       stats['rms_temp_mean'] = float(item[2])
       stats['rms_humid_mean'] = float(item[3])
 
-  print('stats = ', stats)
+ #print('stats = ', stats)
   return stats
 
 #=========================================================================
-def plot(self):
+def plot_lines(plevs, gsirms, jedirms, header='Temp RMS', output=0):
   try:
     plt.close('all')
     plt.clf()
@@ -87,88 +107,48 @@ def plot(self):
   except Exception:
     pass
 
-  title = '%s Timing' %(self.casename)
+  title = header
 
-  nl = len(self.nodelist)
-  x = np.zeros((nl), dtype=float)
-  y = np.zeros((nl), dtype=float)
-  z = np.zeros((nl), dtype=float)
+  nl = len(plevs)
+  x = []
   xlabels = []
-  for k in range(nl):
-    x[k] = self.nodelist[k]
-    lbl = '%d' %(self.nodelist[k])
+  for k in range(0, 12):
+    lbl = '%d' %(k)
     xlabels.append(lbl)
+    x.append(k)
 
   fig = plt.figure()
   ax = plt.subplot()
 
-  pmin = 0.001*self.paravgtimelist[0][0]/60.0
-  pmax = pmin
+  pmin = 0.0
+  pmax = np.max(jedirms)
 
-  txtname = 'timing_%s.csv' %(self.casename)
-  OPF = open(txtname, 'w')
-  header = '%40s, %8s\n' %('Function Name', 'Avg Time (seconds)')
-  OPF.write(header)
+  ax.plot(plevs[::-1], gsirms[::-1], color='blue', linewidth=2, alpha=0.9)
+  ax.plot(plevs[::-1], jedirms[::-1], color='red', linewidth=2, alpha=0.9)
 
-  for i in range(len(self.fullfunction_list)):
-    for k in range(nl):
-      y[k] = 0.001*self.paravgtimelist[k][i]/60.0
-      if(pmin > y[k]):
-        pmin = y[k]
-      if(pmax < y[k]):
-        pmax = y[k]
-   #print('y = ', y)
-    ax.plot(x, y, color=self.colorlist[i], linewidth=2, alpha=0.9)
-    txtinfo = '%40s, %8.2f\n' %(self.fullfunction_list[i], y[0])
-    OPF.write(txtinfo)
-  OPF.close()
-
-  pvmin = 1.0
-  while(pvmin > pmin):
-    pvmin *= 0.5
-  pvmax = 1.0
-  while(pvmax < pmax):
-    pvmax *= 2.0
-  pvmin = 0.125
-  pvmax = 256.0
-
-  ylp = []
+  ylp = np.linspace(0,1000,11)
   ylabels = []
-  pv = pvmin
-  while(pv <= pvmax):
-    ylp.append(pv)
-    lbl = '%6.2f' %(pv)
+  for pv in ylp:
+    lbl = '%d' %(1000-pv)
     ylabels.append(lbl)
-    pv *= 2.0
 
-  if(self.linear):
-    plt.xscale('linear')
-  else:
-    plt.xscale('log', base=2)
-    plt.yscale('log', base=2)
-   #plt.yscale('log', base=10)
-    plt.xticks(x, xlabels)
-   #plt.xticks(x, xlabels, rotation ='vertical')
-    plt.yticks(ylp, ylabels)
-
-  if(self.linear == 0):
-    for i in range(len(self.fullfunction_list)):
-      for k in range(nl):
-        fact = 1.0/np.log2(2*self.nodelist[k])
-        z[k] = 0.001*self.paravgtimelist[0][i]*fact/60.0
-     #https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html
-      ax.plot(x, z, color='black', linewidth=1, alpha=0.5, linestyle='dotted')
+  plt.xscale('linear')
+ #plt.xscale('log', base=2)
+ #plt.yscale('log', base=2)
+ #plt.yscale('log', base=10)
+  plt.xticks(x, xlabels)
+ #plt.xticks(x, xlabels, rotation ='vertical')
+  plt.yticks(ylp, ylabels)
 
   plt.grid()
 
  #Same limits for everybody!
   print('pmin: %f, pmax: %f' %(pmin, pmax))
   plt.xlim(x[0], x[-1])
-  plt.ylim(pmin, pmax)
+  plt.ylim(0, 1000)
  
  #general title
-  title = '%s Timing (in seconds), min: %8.2f, max: %8.2f' %(self.casename, pmin, pmax)
- #plt.suptitle(title, fontsize=13, fontweight=0, color='black', style='italic', y=1.02)
+  title = 'GSI and JEDI rms'
   plt.suptitle(title, fontsize=16, fontweight=1, color='black')
 
  #Create a big subplot
@@ -178,12 +158,14 @@ def plot(self):
  #hide tick and tick label of the big axes
   plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
 
-  bs.set_xlabel('Node', labelpad=10) # Use argument `labelpad` to move label downwards.
-  bs.set_ylabel('Time (second)', labelpad=20)
+  bs.set_xlabel('(m/s)', labelpad=10)
+  bs.set_ylabel('Pressure (hPa)', labelpad=20)
+
+  labels = ['GSI', 'JEDI']
 
  #Create the legend
-  fig.legend(ax, labels=self.function_list,
-         loc="center right",   # Position of legend
+  fig.legend(ax, labels=labels,
+         loc="upper left",   # Position of legend
          fontsize=8,
          borderpad=1.2,
          labelspacing=1.2,
@@ -193,12 +175,9 @@ def plot(self):
  #Adjust the scaling factor to fit your legend text completely outside the plot
  #(smaller value results in more space being made for the legend)
 
-  if(self.linear):
-    imgname = 'lin_%s_timing.png' %(self.casename)
-  else:
-    imgname = 'log_%s_timing.png' %(self.casename)
+  imgname = 'rms_gsi_jedi.png'
 
-  if(self.output):
+  if(output):
     plt.savefig(imgname)
   else:
     plt.show()
@@ -219,6 +198,8 @@ class Plot_JEDI_GSI_Diag():
     except Exception:
       pass
 
+    x = times - times[0]
+    y = plevs
     nrows = 1
     ncols = len(data)
 
@@ -239,26 +220,49 @@ class Plot_JEDI_GSI_Diag():
       vmin = np.min(pvar)
       vmax = np.max(pvar)
 
+      if(i < 2):
+       #self.cmapname = 'coolwarm'
+       #self.cmapname = 'rainbow'
+        self.cmapname = 'jet'
+        self.clevs = np.arange(0.0, 10.1, 0.1)
+        self.cblevs = np.arange(0.0, 11.0, 1.0)
+      else:
+        self.cmapname = 'bwr'
+        self.clevs = np.arange(-2.0, 2.1, 0.1)
+        self.cblevs = np.arange(-2.0, 3.0, 1.0)
+
      #if((vmax - vmin) > 1.0e-5):
      #  self.clevs, self.cblevs = get_plot_levels(pvar)
 
-      cs=axs[i].contourf(pvar,
+      xm, ym = np.meshgrid(x, y)
+      cs=axs[i].contourf(xm, ym, pvar,
+                         levels=self.clevs, extend=self.extend,
                          alpha=self.alpha, cmap=self.cmapname)
-     #cs=axs[i].contourf(times, plevs[::-1], pvar,
-     #                   levels=self.clevs, extend=self.extend,
-     #                   alpha=self.alpha, cmap=self.cmapname)
 
       axs[i].set_title(self.runname[i])
 
+      axs[i].set_xlabel('Hours', fontsize=10)
+      axs[i].set_ylabel('hPa', fontsize=10)
+
+      major_ticks_top=np.linspace(0,1000,11)
+      axs[i].set_yticks(major_ticks_top)
+
+     #minor_ticks_top=np.linspace(0,60,13)
+     #minor_ticks_top=np.linspace(-60,0,13)
+     #axs[i].set_yticks(minor_ticks_top,minor=True)
+
      #Draw the colorbar
-     #cbar=plt.colorbar(cs, cax=axs[i], pad=self.pad,
-     #                  orientation='horizontal')
+      cbar=plt.colorbar(cs, ax=axs[i], pad=self.pad,
+                        orientation='horizontal')
 
      #cbar.set_label(self.label, rotation=90)
-     #cbar.set_label(self.label)
+      cbar.set_label(self.label)
 
    #Add a big title at the top
-    plt.suptitle(self.title)
+    hour = float(times[0])
+    date = hour2date(hour)
+    title = '%s start from %s' %(self.title, date)
+    plt.suptitle(title)
 
     fig.canvas.draw()
     plt.tight_layout()
@@ -382,6 +386,26 @@ if __name__== '__main__':
 
   gsi_stats = read_stats('gsi_stats')
   jedi_stats = read_stats('jedi_stats')
+
+ #stats['p'].append(float(item[0]))
+ #stats['count_wind'].append(float(item[1]))
+ #stats['rms_wind'].append(float(item[2]))
+ #stats['count_temp'].append(float(item[3]))
+ #stats['rms_temp'].append(float(item[4]))
+ #stats['bias_temp'].append(float(item[5]))
+ #stats['count_humid'].append(float(item[6]))
+ #stats['rms_humid'].append(float(item[7]))
+ #stats['bias_humid'].append(float(item[8]))
+  p = gsi_stats['p']
+  gsirms = gsi_stats['rms_temp']
+  jedirms = jedi_stats['rms_temp']
+
+  print('len(p) = ', len(p))
+  print('p = ', p)
+  print('len(gsirms) = ', len(gsirms))
+  print('gsirms = ', gsirms)
+
+  plot_lines(p, gsirms, jedirms, header='Temp RMS')
 
   ncgsi = nc4.Dataset(gsifile, 'r')
   ncjedi = nc4.Dataset(jedifile, 'r')
