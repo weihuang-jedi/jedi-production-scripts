@@ -2,7 +2,7 @@
       name: IASI-METOPA
       distribution:
         name: Halo
-        halo size: 2500e3
+        halo size: 1250e3
       io pool:
         max pool size: 1
       obsdatain:
@@ -80,14 +80,14 @@
       threshold: 3.0
     obs localizations:
     - localization method: Horizontal Gaspari-Cohn
-      lengthscale: 2500e3
+      lengthscale: 1250e3
       max nobs: 10000
 
   - obs space:
       name: IASI-METOPB
       distribution:
         name: Halo
-        halo size: 2500e3
+        halo size: 1250e3
       io pool:
         max pool size: 1
       obsdatain:
@@ -165,6 +165,6 @@
       threshold: 3.0
     obs localizations:
     - localization method: Horizontal Gaspari-Cohn
-      lengthscale: 2500e3
+      lengthscale: 1250e3
       max nobs: 10000
 

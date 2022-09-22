@@ -15,9 +15,17 @@
 #nodes=1
 #MYLAYOUT="2,3"
 
- totalcpus=288
- nodes=8
- MYLAYOUT="8,6"
+ totalcpus=36
+ nodes=1
+ MYLAYOUT="3,2"
+ MAXPOOLSIZE=1
+ DISTRIBUTION=" name: Halo"
+ HALOSIZE=" halo size: 1250e3"
+
+ READFROMDISK="false"
+ UPDATEWITHGEOMETRY="false"
+ RUNASOBSERVER="false"
+ SAVEENSEMBLEINCREMENTS="false"
 
 #templatedir=/work2/noaa/gsienkf/weihuang/production/util/templates
  templatedir=/work2/noaa/gsienkf/weihuang/production/run/templates
@@ -53,9 +61,14 @@
  sed -e "s?LAYOUT?${MYLAYOUT}?g" \
      -e "s?NUMBEROFMEMBERS?${NUMMEM}?g" \
      -e "s?DATETIME?${datetime}?g" \
+     -e "s?READFROMDISK?${READFROMDISK}?g" \
+     -e "s?SAVEENSEMBLEINCREMENTS?${SAVEENSEMBLEINCREMENTS}?g" \
+     -e "s?UPDATEWITHGEOMETRY?${UPDATEWITHGEOMETRY}?g" \
+     -e "s?RUNASOBSERVER?${RUNASOBSERVER}?g" \
      ${templatedir}/getkf.yaml.template > getkf.yaml
 
  sed -e "s?YYYYMMDDHH?${yyyymmddhh}?g" \
+     -e "s?MAXPOOLSIZE?${MAXPOOLSIZE}?g" \
      ${templatedir}/${casename}.obs.yaml.template >> getkf.yaml
 
  sbatch run.slurm

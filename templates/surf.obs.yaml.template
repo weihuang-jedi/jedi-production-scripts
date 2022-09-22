@@ -2,7 +2,7 @@
       name: Radiosonde
       distribution:
         name: Halo
-        halo size: 2500e3
+        halo size: 1250e3
       io pool:
         max pool size: 1
       obsdatain:
@@ -74,14 +74,14 @@
         name: reject
     obs localizations:
     - localization method: Horizontal Gaspari-Cohn
-      lengthscale: 2500e3
+      lengthscale: 1250e3
       max nobs: 10000
 
   - obs space:
       name: Radiosonde
       distribution:
         name: Halo
-        halo size: 2500e3
+        halo size: 1250e3
       io pool:
         max pool size: 1
       obsdatain:
@@ -153,14 +153,14 @@
         name: reject
     obs localizations:
     - localization method: Horizontal Gaspari-Cohn
-      lengthscale: 2500e3
+      lengthscale: 1250e3
       max nobs: 10000
 
   - obs space:
       name: Radiosonde
       distribution:
         name: Halo
-        halo size: 2500e3
+        halo size: 1250e3
       io pool:
         max pool size: 1
       obsdatain:
@@ -232,6 +232,6 @@
         name: reject
     obs localizations:
     - localization method: Horizontal Gaspari-Cohn
-      lengthscale: 2500e3
+      lengthscale: 1250e3
       max nobs: 10000
 
