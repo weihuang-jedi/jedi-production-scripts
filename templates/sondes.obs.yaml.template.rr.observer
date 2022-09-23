@@ -56,7 +56,7 @@
         name: reject
     obs localizations:
     - localization method: Horizontal Gaspari-Cohn
-      lengthscale: 2500e3
+      lengthscale: 1250e3
       max nobs: 10000
 
   - obs space:
@@ -144,7 +144,7 @@
     #
     obs localizations:
     - localization method: Horizontal Gaspari-Cohn
-      lengthscale: 2500e3
+      lengthscale: 1250e3
       max nobs: 10000
 
   - obs space:
@@ -271,7 +271,7 @@
     #
     obs localizations:
     - localization method: Horizontal Gaspari-Cohn
-      lengthscale: 2500e3
+      lengthscale: 1250e3
       max nobs: 10000
 
   - obs space:
@@ -357,6 +357,6 @@
         name: reject
     obs localizations:
     - localization method: Horizontal Gaspari-Cohn
-      lengthscale: 2500e3
+      lengthscale: 1250e3
       max nobs: 10000
 

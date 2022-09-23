@@ -118,7 +118,15 @@ def plot_lines(plevs, gsirms, jedirms, header='temp', output=0):
     print('%4.0f %7.4f %7.4f' %(plevs[n], gsirms[n], jedirms[n]))
 
   pmin = 0.0
+ #pmin = np.min(jedirms)
+ #gmin = np.min(gsirms)
+ #if(pmin > gmin):
+ #  pmin = gmin
+
   pmax = np.max(jedirms)
+  gmax = np.max(gsirms)
+  if(pmax < gmax):
+    pmax = gmax
   vmax = 0.0
  
   x = [0]

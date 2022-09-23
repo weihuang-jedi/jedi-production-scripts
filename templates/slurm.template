@@ -6,8 +6,8 @@
 #SBATCH -A gsienkf
 ##SBATCH --partition=orion
 #SBATCH --partition=bigmem
-#SBATCH --job-name=getkf
-#SBATCH --output=log.getkf
+#SBATCH --job-name=DATATYPE
+#SBATCH --output=log.DATATYPE
 ##SBATCH --mem=0
 
 #source ~/intelenv

@@ -1,5 +1,5 @@
   - obs space:
-      name: Radiosonde
+      name: Aircraft
       distribution:
         name: Halo
         halo size: 1250e3

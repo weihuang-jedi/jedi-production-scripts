@@ -53,6 +53,7 @@
      -e "s?TOTALNODES?${nodes}?g" \
      -e "s?TOTALCPUS?${totalcpus}?g" \
      -e "s?CASENAME?${casename}?g" \
+     -e "s?DATATYPE?${casename}?g" \
      -e "s?WORKDIR?${workdir}?g" \
      -e "s?NUMMEM?${NUMMEM}?g" \
      -e "s?MYLAYOUT?${MYLAYOUT}?g" \

@@ -1,5 +1,5 @@
   - obs space:
-      name: Radiosonde
+      name: Surface
       distribution:
         name: Halo
         halo size: 1250e3
@@ -157,7 +157,7 @@
       max nobs: 10000
 
   - obs space:
-      name: Radiosonde
+      name: Ship
       distribution:
         name: Halo
         halo size: 1250e3

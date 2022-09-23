@@ -11,17 +11,17 @@ geometry:
   npz: 127
   field metadata override: Data/fieldmetadata/gfs-restart.yaml
 
-window begin: &date 'DATETIME'
+window begin: &date 'WINDOWBEGINDATETIME'
 window length: PT6H
 
 background:
-  date: *date
+  date: BACKGROUNDDATETIME
   members from template:
     pattern: '%mem%'
     nmembers: NUMBEROFMEMBERS
     zero padding: 3
     template:
-      datetime: DATETIME
+      datetime: BACKGROUNDDATETIME
       datapath: Data/ens/mem%mem%
       filename_core: fv_core.res.nc
       filename_trcr: fv_tracer.res.nc
