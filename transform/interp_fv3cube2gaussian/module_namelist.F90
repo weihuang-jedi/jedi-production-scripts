@@ -17,6 +17,7 @@ MODULE namelist_module
   integer :: nlat, nlon, nlev, nilev, npnt, num_types
   integer :: debug_level
   logical :: generate_weights, debug_on, has_prefix, use_uv_directly
+  logical :: use_gaussian_grid
 
 contains
   subroutine read_namelist(file_path)
@@ -29,12 +30,13 @@ contains
     ! Namelist definition.
     namelist /control_param/ program_name, dirname, &
                              output_flnm, wgt_flnm, &
-                             nlat, nlon, npnt, &
+                             nlat, nlon, nlev, nilev, npnt, &
                              num_types, data_types, &
                              generate_weights, prefix, &
                              griddirname, grid_type, &
                              debug_on, debug_level, &
-                             has_prefix, use_uv_directly
+                             has_prefix, use_uv_directly, &
+                             use_gaussian_grid
 
     program_name = 'Interpolate FV3 cube sphere to Gaussian Grid'
 
@@ -50,8 +52,8 @@ contains
     has_prefix = .false.
     use_uv_directly = .false.
 
-    nlon = 360
-    nlat = 180
+    nlon = 384
+    nlat = 192
     nlev = 127
     nilev = 128
     npnt = 4
@@ -62,6 +64,8 @@ contains
     generate_weights = .false.
     debug_on = .false.
     debug_level = 0
+
+    use_gaussian_grid = .true.
 
     ! Check whether file exists.
     inquire(file=file_path, iostat=rc)
@@ -80,11 +84,14 @@ contains
       write(unit=0, fmt='(a)') 'Error: invalid Namelist format.'
     end if
 
+   !print *, 'file_path: ', trim(file_path)
+   !write(*, control_param)
+
     close(nml_unit)
 
-    print *, 'dirname: ', trim(dirname)
-    print *, 'data_types(1): ', trim(data_types(1))
-    print *, 'nlon, nlat, nlev, npnt = ', nlon, nlat, nlev, npnt
+   !print *, 'dirname: ', trim(dirname)
+   !print *, 'data_types(1): ', trim(data_types(1))
+   !print *, 'nlon, nlat, nlev, npnt = ', nlon, nlat, nlev, npnt
 
   end subroutine read_namelist
 

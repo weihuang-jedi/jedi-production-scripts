@@ -4,6 +4,7 @@ PROGRAM fv3interp2latlon
    use namelist_module
    use tile_module
    use latlon_module
+   use gaussian_module
    use fv_grid_utils_module
 
    IMPLICIT NONE
@@ -15,6 +16,7 @@ PROGRAM fv3interp2latlon
    type(tilespec_type), dimension(6)    :: spec
    type(tiletype), dimension(max_types) :: types
    type(latlongrid)                     :: latlon
+   type(gaussiangrid)                   :: gaussian
    type(fv_grid_type), dimension(6)     :: gridstruct
 
    integer :: n
@@ -38,12 +40,12 @@ PROGRAM fv3interp2latlon
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
 
-   call read_gaussian_grid(gaussian_grid_file, nlon, nlat, nlev, lon, lat)
-
-   call initialize_latlongrid(nlon, nlat, nlev, npnt, lon, lat, latlon)
-
-   deallocate(lon)
-   deallocate(lat)
+   if(use_gaussian_grid) then
+      call initialize_gaussiangrid(gaussian_grid_file, &
+                                   nlon, nlat, nlev, nilev, npnt, gaussian)
+   else
+      call initialize_latlongrid(nlon, nlat, npnt, latlon)
+   end if
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
 
@@ -52,10 +54,12 @@ PROGRAM fv3interp2latlon
                '>, data_types(', n, ') = <', trim(data_types(n)), '>'
       call initialize_tilegrid(types(n)%tile, trim(dirname), trim(data_types(n)))
 
-      if(trim(data_types(n)) == 'fv_core.res.tile') then
-         latlon%nlev = types(n)%tile(1)%nz
-      else if(trim(data_types(n)) == 'sfc_data.tile') then
-         latlon%nlay = types(n)%tile(1)%nz
+      if(.not. use_gaussian_grid) then
+         if(trim(data_types(n)) == 'fv_core.res.tile') then
+            latlon%nlev = types(n)%tile(1)%nz
+         else if(trim(data_types(n)) == 'sfc_data.tile') then
+            latlon%nlay = types(n)%tile(1)%nz
+         end if
       end if
    end do
 

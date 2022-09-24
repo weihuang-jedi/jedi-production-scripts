@@ -1,16 +1,17 @@
-&control_param
- generate_weights = .true.,
- gaussian_grid_file = 'gaussian_grid.nc4',
- output_flnm = 'fv3_on_gaussian_grid.nc4',
- wgt_flnm = 'gaussian_weights.nc4',
+ &control_param
+ generate_weights = .true.
+ gaussian_grid_file = "gaussian_grid.nc4"
+ output_flnm = "fv3_on_gaussian_grid.nc4"
+ wgt_flnm = "gaussian_weights.nc4"
+ use_gaussian_grid = .true.
 
- nlon = 360,
- nlat = 180,
- nlev = 127,
- npnt = 4,
+ nlon = 384
+ nlat = 192
+ nlev = 127
+ nilev = 128
+ npnt = 4
 
- num_types = 1,
- data_types = 'C96_grid_spec.tile',
-/
- data_types = 'fv_core.res.tile',
+ num_types = 1
+ data_types = "C96_grid_spec.tile"
+ /
 

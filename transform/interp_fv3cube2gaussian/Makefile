@@ -69,7 +69,12 @@ clean :
 
 #fv3interp2latlon.o : tile_module.o
 
-tile_module.o : tile_module.F90
+tile_module.o : tile_module.F90 \
+		status_module.o
 
-latlon_module.o : latlon_module.F90
+latlon_module.o : latlon_module.F90 \
+		status_module.o
+
+gaussizn_module.o : gaussizn_module.F90 \
+		status_module.o
 

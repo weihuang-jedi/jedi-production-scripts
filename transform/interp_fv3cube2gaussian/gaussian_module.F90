@@ -13,7 +13,7 @@ module gaussian_module
   public :: gaussiangrid
   public :: initialize_gaussiangrid
   public :: finalize_gaussiangrid
-  public :: generate_weight
+  public :: generate_weight4gaussian
 
   !-----------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ contains
     implicit none
 
     character(len=*),   intent(in)  :: gaussian_grid_file
-    integer,            intent(in)  :: nlon, nlat, nlev, npnt
+    integer,            intent(in)  :: nlon, nlat, nlev, nilev, npnt
     type(gaussiangrid), intent(out) :: gaussian
 
     integer :: i, j, k
@@ -71,12 +71,7 @@ contains
     allocate(gaussian%hybi(nilev))
     allocate(gaussian%pnt(npnt))
     
-    do i = 1, nlon
-      gaussian%lon(i) = lon(i)
-    end do
-    
     do j = 1, nlat
-      gaussian%lat(j) = lat(j)
       do i = 1, nlon
         gaussian%pos(i, j) = -1.0
         gaussian%counter(i, j) = 0
@@ -95,10 +90,12 @@ contains
       gaussian%pnt(i) = real(i)
     end do
 
-    print *, 'gaussian%lon = ', gaussian%lon
-    print *, 'gaussian%lat = ', gaussian%lat
+    call read_gaussian_grid(gaussian_grid_file, gaussian)
 
-    print *, 'leave initialize_gaussiangrid'
+   !print *, 'gaussian%lon = ', gaussian%lon
+   !print *, 'gaussian%lat = ', gaussian%lat
+
+   !print *, 'leave initialize_gaussiangrid'
 
   end subroutine initialize_gaussiangrid
 
@@ -121,8 +118,8 @@ contains
     character(len=128) :: dimname
     integer :: status, i, include_parents, dimsize
 
-    print *, 'File: ', __FILE__, ', line: ', __LINE__
-    print *, 'Start Read gaussian grid info from file: ', trim(gaussian_grid_file)
+   !print *, 'File: ', __FILE__, ', line: ', __LINE__
+   !print *, 'Start Read gaussian grid info from file: ', trim(gaussian_grid_file)
 
     include_parents = 0
 
@@ -131,14 +128,14 @@ contains
    !Open the file. 
     status = nf90_open(trim(gaussian_grid_file), nf90_nowrite, fileid)
     call check_status(status)
-    print *, 'File: ', __FILE__, ', line: ', __LINE__
+   !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
     status = nf90_inquire(fileid, nDims, nVars, &
                           nGlobalAtts, unlimdimid)
     call check_status(status)
-    print *, 'File: ', __FILE__, ', line: ', __LINE__
-    print *, 'nVars: ', nVars
-    print *, 'nDims: ', nDims
+   !print *, 'File: ', __FILE__, ', line: ', __LINE__
+   !print *, 'nVars: ', nVars
+   !print *, 'nDims: ', nDims
 
    !Allocate memory.
     allocate(dimids(nDims))
@@ -146,13 +143,13 @@ contains
     status = nf90_inq_dimids(fileid, nDims, dimids, include_parents)
     call check_status(status)
 
-    print *, 'File: ', __FILE__, ', line: ', __LINE__
-    print *, 'dimids: ', dimids
+   !print *, 'File: ', __FILE__, ', line: ', __LINE__
+   !print *, 'dimids: ', dimids
 
     do i = 1, nDims
        status = nf90_inquire_dimension(fileid, dimids(i), dimname, dimsize)
        call check_status(status)
-       print *, 'Dim No. ', i, ': ', trim(dimname), ', dimsize=', dimsize
+      !print *, 'Dim No. ', i, ': ', trim(dimname), ', dimsize=', dimsize
 
        if(trim(dimname) == 'lon') then
           if(gaussian%nlon /= dimsize) then
@@ -181,7 +178,7 @@ contains
        end if
     end do
 
-    print *, 'File: ', __FILE__, ', line: ', __LINE__
+   !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
    !read lon
     call nc_get1Dvar0(fileid, 'lon', gaussian%lon, 1, gaussian%nlon)
@@ -204,16 +201,16 @@ contains
     status =  nf90_close(fileid)
     call check_status(status)
 
-    print *, 'File: ', __FILE__, ', line: ', __LINE__
+   !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
-    print *, 'lon = ', lon
-    print *, 'lat = ', lat
+   !print *, 'lon = ', gaussian%lon
+   !print *, 'lat = ', gaussian%lat
 
    !Allocate memory.
     deallocate(dimids)
 
-    print *, 'Finished Read gaussian grid info from file: ', trim(gaussian_grid_file)
-    print *, 'File: ', __FILE__, ', line: ', __LINE__
+   !print *, 'Finished Read gaussian grid info from file: ', trim(gaussian_grid_file)
+   !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
   end subroutine read_gaussian_grid
  !----------------------------------------------------------------------
@@ -228,9 +225,11 @@ contains
 
     deallocate(gaussian%lon)
     deallocate(gaussian%lat)
-    if(allocated(gaussian%lev)) deallocate(gaussian%lev)
-    if(allocated(gaussian%lay)) deallocate(gaussian%lay)
     deallocate(gaussian%pnt)
+    if(allocated(gaussian%lev)) deallocate(gaussian%lev)
+    if(allocated(gaussian%ilev)) deallocate(gaussian%ilev)
+    if(allocated(gaussian%hyai)) deallocate(gaussian%hyai)
+    if(allocated(gaussian%hybi)) deallocate(gaussian%hybi)
 
     deallocate(gaussian%counter)
     deallocate(gaussian%tile)
@@ -247,7 +246,7 @@ contains
   end subroutine finalize_gaussiangrid
 
   !----------------------------------------------------------------------
-  subroutine generate_weight(tile, gaussian)
+  subroutine generate_weight4gaussian(tile, gaussian)
 
     implicit none
 
@@ -276,7 +275,7 @@ contains
     end do
     end do
 
-  end subroutine generate_weight
+  end subroutine generate_weight4gaussian
 
   !----------------------------------------------------------------------
   subroutine process_point(ik, jk, tile, gaussian)
