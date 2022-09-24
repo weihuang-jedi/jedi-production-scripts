@@ -67,7 +67,11 @@ clean :
 
 # DEPENDENCIES : only dependencies after this line (don't remove the word DEPENDENCIES)
 
-#fv3interp2latlon.o : tile_module.o
+fv3interp2latlon.o : fv3interp2latlon.F90 \
+		tile_module.o \
+		gaussian_module.o \
+		latlon_module.o	\
+		module_namelist.o
 
 tile_module.o : tile_module.F90 \
 		status_module.o
@@ -75,6 +79,6 @@ tile_module.o : tile_module.F90 \
 latlon_module.o : latlon_module.F90 \
 		status_module.o
 
-gaussizn_module.o : gaussizn_module.F90 \
+gaussian_module.o : gaussian_module.F90 \
 		status_module.o
 

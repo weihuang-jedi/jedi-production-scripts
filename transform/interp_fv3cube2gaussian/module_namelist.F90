@@ -4,7 +4,7 @@ MODULE namelist_module
 
   implicit none
 
-  integer, parameter :: nml_unit = 7
+  integer :: nml_unit
   integer, parameter :: max_types = 5
 
   CHARACTER(LEN=1024) :: program_name
@@ -26,9 +26,10 @@ contains
     !! Reads Namelist from given file.
     character(len=*),  intent(in)  :: file_path
     integer :: rc
+    character(len=1000) :: line
 
     ! Namelist definition.
-    namelist /control_param/ program_name, dirname, &
+    namelist /control_param/ dirname, &
                              output_flnm, wgt_flnm, &
                              nlat, nlon, nlev, nilev, npnt, &
                              num_types, data_types, &
@@ -36,6 +37,7 @@ contains
                              griddirname, grid_type, &
                              debug_on, debug_level, &
                              has_prefix, use_uv_directly, &
+                             gaussian_grid_file, &
                              use_gaussian_grid
 
     program_name = 'Interpolate FV3 cube sphere to Gaussian Grid'
@@ -67,25 +69,36 @@ contains
 
     use_gaussian_grid = .true.
 
-    ! Check whether file exists.
-    inquire(file=file_path, iostat=rc)
+   !Check whether file exists.
+   !inquire(file=file_path, iostat=rc)
 
-    if(rc /= 0) then
-      write(unit=0, fmt='(3a)') 'Error: input file "', &
-                             trim(file_path), '" does not exist.'
-      return
+   !if(rc /= 0) then
+   !  write(unit=0, fmt='(3a)') 'Error: input file "', &
+   !                         trim(file_path), '" does not exist.'
+   !  return
+   !end if
+
+   !Open and read Namelist file.
+   !open(action='read', file=file_path, iostat=rc, unit=nml_unit)
+   !read(nml=control_param, iostat=rc, unit=nml_unit)
+
+   !if(rc /= 0) then
+   !  write(unit=0, fmt='(a)') 'Error: invalid Namelist format.'
+   !end if
+
+    open(newunit=nml_unit, file=trim(file_path), status='OLD')
+
+    read(nml_unit, nml=control_param, iostat=rc)
+
+    if(rc/=0) then
+       backspace(nml_unit)
+       read(nml_unit, fmt='(A)') line
+       write(*, '(A)') &
+           'Invalid line in namelist: '//trim(line)
     end if
 
-    ! Open and read Namelist file.
-    open(action='read', file=file_path, iostat=rc, unit=nml_unit)
-    read(nml=control_param, iostat=rc, unit=nml_unit)
-
-    if(rc /= 0) then
-      write(unit=0, fmt='(a)') 'Error: invalid Namelist format.'
-    end if
-
-   !print *, 'file_path: ', trim(file_path)
-   !write(*, control_param)
+    print *, 'file_path: ', trim(file_path)
+    write(*, control_param)
 
     close(nml_unit)
 
