@@ -1,6 +1,7 @@
 module gaussian_module
 
   use netcdf
+  use status_module
   use tile_module
 
   implicit none
@@ -19,10 +20,10 @@ module gaussian_module
   type gaussiangrid
      character(len=1024)                   :: filename
      integer                               :: ncid
-     integer                               :: dimidx, dimidy, dimidz, &
-                                              dimidl, dimidh, dimidt
-     integer                               :: nlon, nlat, nlev, nlay, npnt
-     real,    dimension(:),    allocatable :: lon, lat, lev, lay, pnt
+     integer                               :: dimid_lon, dimid_lat, dimid_lev, &
+                                              dimid_ilev
+     integer                               :: nlon, nlat, nlev, nilev, npnt
+     real,    dimension(:),    allocatable :: lon, lat, lev, ilev, pnt, hyai, hybi
      integer, dimension(:, :), allocatable :: counter
      integer, dimension(:, :, :), allocatable :: tile
      integer, dimension(:, :, :), allocatable :: ilon, jlat
@@ -35,14 +36,14 @@ module gaussian_module
 contains
 
  !-----------------------------------------------------------------------
-  subroutine initialize_gaussiangrid(nlon, nlat, nlev, npnt, lat, lon, gaussian)
+  subroutine initialize_gaussiangrid(gaussian_grid_file, &
+                                     nlon, nlat, nlev, nilev, npnt, gaussian)
 
     implicit none
 
-    integer,               intent(in)  :: nlon, nlat, nlev, npnt
-    real, dimension(nlon), intent(inout)  :: lon
-    real, dimension(nlat), intent(inout)  :: lat
-    type(gaussiangrid),      intent(out)    :: gaussian
+    character(len=*),   intent(in)  :: gaussian_grid_file
+    integer,            intent(in)  :: nlon, nlat, nlev, npnt
+    type(gaussiangrid), intent(out) :: gaussian
 
     integer :: i, j, k
 
@@ -51,7 +52,7 @@ contains
     gaussian%nlon = nlon
     gaussian%nlat = nlat
     gaussian%nlev = nlev
-    gaussian%nlay = 4
+    gaussian%nilev = nilev
     gaussian%npnt = npnt
 
     allocate(gaussian%counter(nlon, nlat))
@@ -64,6 +65,10 @@ contains
 
     allocate(gaussian%lon(nlon))
     allocate(gaussian%lat(nlat))
+    allocate(gaussian%lev(nlev))
+    allocate(gaussian%ilev(nilev))
+    allocate(gaussian%hyai(nilev))
+    allocate(gaussian%hybi(nilev))
     allocate(gaussian%pnt(npnt))
     
     do i = 1, nlon
@@ -90,16 +95,127 @@ contains
       gaussian%pnt(i) = real(i)
     end do
 
-   !deallocate(lon)
-   !deallocate(lat)
+    print *, 'gaussian%lon = ', gaussian%lon
+    print *, 'gaussian%lat = ', gaussian%lat
 
-   !print *, 'gaussian%lon = ', gaussian%lon
-   !print *, 'gaussian%lat = ', gaussian%lat
-
-   !print *, 'leave initialize_gaussiangrid'
+    print *, 'leave initialize_gaussiangrid'
 
   end subroutine initialize_gaussiangrid
 
+!----------------------------------------------------------------------------------------
+  subroutine read_gaussian_grid(gaussian_grid_file, gaussian)
+
+    use netcdf
+
+    implicit none
+
+    character(len=*),   intent(in)    :: gaussian_grid_file
+    type(gaussiangrid), intent(inout) :: gaussian
+
+    integer                                       :: fileid
+    integer                                       :: nDims, nVars, &
+                                                     nGlobalAtts, unlimDimID
+!   integer, dimension(:),    allocatable         :: varids
+    integer, dimension(:),    allocatable         :: dimids
+
+    character(len=128) :: dimname
+    integer :: status, i, include_parents, dimsize
+
+    print *, 'File: ', __FILE__, ', line: ', __LINE__
+    print *, 'Start Read gaussian grid info from file: ', trim(gaussian_grid_file)
+
+    include_parents = 0
+
+    status = nf90_noerr
+
+   !Open the file. 
+    status = nf90_open(trim(gaussian_grid_file), nf90_nowrite, fileid)
+    call check_status(status)
+    print *, 'File: ', __FILE__, ', line: ', __LINE__
+
+    status = nf90_inquire(fileid, nDims, nVars, &
+                          nGlobalAtts, unlimdimid)
+    call check_status(status)
+    print *, 'File: ', __FILE__, ', line: ', __LINE__
+    print *, 'nVars: ', nVars
+    print *, 'nDims: ', nDims
+
+   !Allocate memory.
+    allocate(dimids(nDims))
+
+    status = nf90_inq_dimids(fileid, nDims, dimids, include_parents)
+    call check_status(status)
+
+    print *, 'File: ', __FILE__, ', line: ', __LINE__
+    print *, 'dimids: ', dimids
+
+    do i = 1, nDims
+       status = nf90_inquire_dimension(fileid, dimids(i), dimname, dimsize)
+       call check_status(status)
+       print *, 'Dim No. ', i, ': ', trim(dimname), ', dimsize=', dimsize
+
+       if(trim(dimname) == 'lon') then
+          if(gaussian%nlon /= dimsize) then
+             print *, 'Dim lon: ', dimsize, ' in file is different to what read in: ', &
+                       gaussian%nlon
+             stop 'Wrong nlon'
+          end if
+       else if(trim(dimname) == 'lat') then
+          if(gaussian%nlat /= dimsize) then
+             print *, 'Dim lat: ', dimsize, ' in file is different to what read in: ', &
+                       gaussian%nlat
+             stop 'Wrong nlat'
+          end if
+       else if(trim(dimname) == 'lev') then
+          if(gaussian%nlev /= dimsize) then
+             print *, 'Dim lev: ', dimsize, ' in file is different to what read in: ', &
+                       gaussian%nlev
+             stop 'Wrong nlev'
+          end if
+       else if(trim(dimname) == 'ilev') then
+          if(gaussian%nilev /= dimsize) then
+             print *, 'Dim ilev: ', dimsize, ' in file is different to what read in: ', &
+                       gaussian%nilev
+             stop 'Wrong nilev'
+          end if
+       end if
+    end do
+
+    print *, 'File: ', __FILE__, ', line: ', __LINE__
+
+   !read lon
+    call nc_get1Dvar0(fileid, 'lon', gaussian%lon, 1, gaussian%nlon)
+
+   !read lat
+    call nc_get1Dvar0(fileid, 'lat', gaussian%lat, 1, gaussian%nlat)
+
+   !read lev
+    call nc_get1Dvar0(fileid, 'lev', gaussian%lev, 1, gaussian%nlev)
+
+   !read ilev
+    call nc_get1Dvar0(fileid, 'ilev', gaussian%ilev, 1, gaussian%nilev)
+
+   !read hyai
+    call nc_get1Dvar0(fileid, 'hyai', gaussian%hyai, 1, gaussian%nilev)
+
+   !read hybi
+    call nc_get1Dvar0(fileid, 'hybi', gaussian%hybi, 1, gaussian%nilev)
+
+    status =  nf90_close(fileid)
+    call check_status(status)
+
+    print *, 'File: ', __FILE__, ', line: ', __LINE__
+
+    print *, 'lon = ', lon
+    print *, 'lat = ', lat
+
+   !Allocate memory.
+    deallocate(dimids)
+
+    print *, 'Finished Read gaussian grid info from file: ', trim(gaussian_grid_file)
+    print *, 'File: ', __FILE__, ', line: ', __LINE__
+
+  end subroutine read_gaussian_grid
  !----------------------------------------------------------------------
   subroutine finalize_gaussiangrid(gaussian)
 

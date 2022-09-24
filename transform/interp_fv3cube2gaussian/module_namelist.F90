@@ -14,7 +14,7 @@ MODULE namelist_module
   character(len=1024) :: griddirname
   character(len=128)  :: grid_type
   character(len=128), dimension(max_types) :: data_types
-  integer :: nlat, nlon, nlev, npnt, num_types
+  integer :: nlat, nlon, nlev, nilev, npnt, num_types
   integer :: debug_level
   logical :: generate_weights, debug_on, has_prefix, use_uv_directly
 
@@ -53,6 +53,7 @@ contains
     nlon = 360
     nlat = 180
     nlev = 127
+    nilev = 128
     npnt = 4
     num_types = 1
 
