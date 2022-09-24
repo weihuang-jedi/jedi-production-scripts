@@ -10,10 +10,11 @@ MODULE namelist_module
   CHARACTER(LEN=1024) :: program_name
   character(len=1024) :: dirname
   character(len=1024) :: output_flnm, wgt_flnm, prefix
+  character(len=1024) :: gaussian_grid_file
   character(len=1024) :: griddirname
   character(len=128)  :: grid_type
   character(len=128), dimension(max_types) :: data_types
-  integer :: nlat, nlon, npnt, num_types
+  integer :: nlat, nlon, nlev, npnt, num_types
   integer :: debug_level
   logical :: generate_weights, debug_on, has_prefix, use_uv_directly
 
@@ -35,22 +36,23 @@ contains
                              debug_on, debug_level, &
                              has_prefix, use_uv_directly
 
-    program_name = 'Interpolate FV3 to regular Lat-Lon Grid'
-
-    dirname = '/work/noaa/gsienkf/weihuang/jedi/case_study/sondes/analysis.getkf.80members.36procs.uvTq/increment/'
+    program_name = 'Interpolate FV3 cube sphere to Gaussian Grid'
 
     griddirname = '/work/noaa/gsienkf/weihuang/UFS-RNR-tools/JEDI.FV3-increments/grid/C96/'
     grid_type = 'C96_grid.tile'
 
-    output_flnm = 'latlon_grid.nc'
+    dirname = '/work2/noaa/gsienkf/weihuang/production/run/sondes/run_80.40t1n_36p/analysis.2/increment/mem001'
+    gaussian_grid_file = 'gaussian_grid.nc4'
+    output_flnm = 'gaussian_grid.nc'
     wgt_flnm = 'weights.nc'
-    prefix = 'None'
+    prefix = '20200101.120000.'
 
     has_prefix = .false.
     use_uv_directly = .false.
 
     nlon = 360
     nlat = 180
+    nlev = 127
     npnt = 4
     num_types = 1
 
@@ -79,9 +81,9 @@ contains
 
     close(nml_unit)
 
-   !print *, 'dirname: ', trim(dirname)
-   !print *, 'data_types(1): ', trim(data_types(1))
-   !print *, 'nlon, nlat, npnt = ', nlon, nlat, npnt
+    print *, 'dirname: ', trim(dirname)
+    print *, 'data_types(1): ', trim(data_types(1))
+    print *, 'nlon, nlat, nlev, npnt = ', nlon, nlat, nlev, npnt
 
   end subroutine read_namelist
 

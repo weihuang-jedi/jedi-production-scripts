@@ -40,7 +40,6 @@ FFLAGS		=       $(FC_US_FLAGS) $(FC_INCLUDES) $(FC_COMPILE_OPTIONS) $(FC_OPTIMIZ
 LDFLAGS		=       
 
 CPP		=       /usr/bin/cpp -C -P 
-#CPPFLAGS	=	-I. $(DEBUGFLAGS) -DOLD_VECT
 CPPFLAGS	=	-I. $(DEBUGFLAGS)
 
 LOC_LIBS	=	$(NETCDF_LIB) $(HDF5_LIB) -lm -lc
@@ -52,14 +51,17 @@ RANLIB		=	ranlib
 
 .F90.o:
 	$(RM) $*.o $*.f90
-	$(CPP) $(CPPFLAGS) $*.F90  > $*.f90
-	$(FC) -c $(FFLAGS) $*.f90
+	$(FC) -c $(FFLAGS) $*.F90
 
-.F90.f90:
-	$(RM) $*.f90
-	$(CPP) $(CPPFLAGS) $*.F90 > $*.f90
-
-.f.o:
-	$(RM) $*.o
-	$(FC) -c $(FFLAGS) $*.f
-
+#.F90.o:
+#	$(RM) $*.o $*.f90
+#	$(CPP) $(CPPFLAGS) $*.F90  > $*.f90
+#	$(FC) -c $(FFLAGS) $*.f90
+#
+#.F90.f90:
+#	$(RM) $*.f90
+#	$(CPP) $(CPPFLAGS) $*.F90 > $*.f90
+#
+#.f.o:
+#	$(RM) $*.o
+#	$(FC) -c $(FFLAGS) $*.f

@@ -35,9 +35,11 @@ OBJS =	module_namelist.o \
 	nc_putGlobalCharAttr.o \
 	tile_module.o \
 	latlon_module.o \
+	read_gaussian_grid.o \
 	read_weights.o \
 	output_tilegrid.o \
 	output_latlongrid.o \
+	status_module.o \
 	fv_grid_utils.o \
 	interp_vars.o
 

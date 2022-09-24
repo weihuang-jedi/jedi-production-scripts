@@ -19,6 +19,7 @@ PROGRAM fv3interp2latlon
 
    integer :: n
    logical :: last
+   real, dimension(:), allocatable :: lon, lat
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
 
@@ -37,7 +38,12 @@ PROGRAM fv3interp2latlon
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
 
-   call initialize_latlongrid(nlon, nlat, npnt, latlon)
+   call read_gaussian_grid(gaussian_grid_file, nlon, nlat, nlev, lon, lat)
+
+   call initialize_latlongrid(nlon, nlat, nlev, npnt, lon, lat, latlon)
+
+   deallocate(lon)
+   deallocate(lat)
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
 

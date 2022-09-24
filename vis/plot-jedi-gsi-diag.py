@@ -405,7 +405,6 @@ if __name__== '__main__':
   debug = 1
   output = 0
   type = 'bfg'
-  datestr = '2020010200'
   gsifile = 'gsi_stats.nc'
   jedifile = 'jedi_stats.nc'
 

@@ -376,7 +376,7 @@ if __name__== '__main__':
   output = 0
 
   sdate = '2020010206'
-  edate = '2020010406'
+  edate = '2020010612'
   datadir = '/work2/noaa/gsienkf/weihuang/gsi'
   type = 'C96_lgetkf_sondesonly'
   runid = 'ensmean'
