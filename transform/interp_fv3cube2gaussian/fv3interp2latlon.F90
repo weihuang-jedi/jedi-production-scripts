@@ -68,8 +68,15 @@ PROGRAM fv3interp2latlon
    print *, 'generate_weights = ', generate_weights
 
    if(generate_weights) then
-      call generate_weight(types(1)%tile, latlon)
-      call write_latlongrid(latlon, wgt_flnm)
+      print *, 'File: ', __FILE__, ', line: ', __LINE__
+      print *, 'use_gaussian_grid = ', use_gaussian_grid
+      if(use_gaussian_grid) then
+         call generate_weight4gaussian(types(1)%tile, gaussian)
+         call write_gaussiangrid(gaussian, wgt_flnm)
+      else
+         call generate_weight(types(1)%tile, latlon)
+         call write_latlongrid(latlon, wgt_flnm)
+      end if
    else
       print *, 'File: ', __FILE__, ', line: ', __LINE__
       print *, 'wgt_flnm: ', trim(wgt_flnm)

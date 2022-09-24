@@ -38,6 +38,7 @@ OBJS =	module_namelist.o \
 	gaussian_module.o \
 	read_weights.o \
 	output_tilegrid.o \
+	output_gaussiangrid.o \
 	output_latlongrid.o \
 	status_module.o \
 	fv_grid_utils.o \

@@ -21,7 +21,7 @@ module gaussian_module
      character(len=1024)                   :: filename
      integer                               :: ncid
      integer                               :: dimid_lon, dimid_lat, dimid_lev, &
-                                              dimid_ilev
+                                              dimid_ilev, dimid_pnt
      integer                               :: nlon, nlat, nlev, nilev, npnt
      real,    dimension(:),    allocatable :: lon, lat, lev, ilev, pnt, hyai, hybi
      integer, dimension(:, :), allocatable :: counter
@@ -254,6 +254,8 @@ contains
     type(gaussiangrid), intent(inout) :: gaussian
 
     integer :: ik, jk
+
+    print *, 'File: ', __FILE__, ', line: ', __LINE__
 
     do jk = 1, gaussian%nlat
     do ik = 1, gaussian%nlon
