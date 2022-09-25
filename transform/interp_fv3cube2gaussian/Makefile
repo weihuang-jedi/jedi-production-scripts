@@ -42,7 +42,8 @@ OBJS =	module_namelist.o \
 	output_latlongrid.o \
 	status_module.o \
 	fv_grid_utils.o \
-	interp_vars.o
+	interp2gaussian.o \
+	interp2latlon.o
 
 ####################################################
 

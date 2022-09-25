@@ -21,8 +21,8 @@ module gaussian_module
      character(len=1024)                   :: filename
      integer                               :: ncid
      integer                               :: dimid_lon, dimid_lat, dimid_lev, &
-                                              dimid_ilev, dimid_pnt
-     integer                               :: nlon, nlat, nlev, nilev, npnt
+                                              dimid_ilev, dimid_pnt, dimid_hor, dimid_time
+     integer                               :: nlon, nlat, nlev, nilev, npnt, nhor
      real,    dimension(:),    allocatable :: lon, lat, lev, ilev, pnt, hyai, hybi
      integer, dimension(:, :), allocatable :: counter
      integer, dimension(:, :, :), allocatable :: tile

@@ -102,11 +102,11 @@ contains
     do n = 1, 6
       ny2 = 0
       if(has_prefix) then
-         write(tile(n)%filename, fmt='(3a, i1, a)') &
-               trim(dname), trim(prefix), trim(ftype), n, '.nc'
+         write(tile(n)%filename, fmt='(4a, i1, a)') &
+               trim(dname), '/', trim(prefix), trim(ftype), n, '.nc'
       else
-         write(tile(n)%filename, fmt='(2a, i1, a)') &
-               trim(dname), trim(ftype), n, '.nc'
+         write(tile(n)%filename, fmt='(3a, i1, a)') &
+               trim(dname), '/', trim(ftype), n, '.nc'
       end if
       print *, 'Tile ', n, ', open filename: ', trim(tile(n)%filename)
       rc = nf90_open(trim(tile(n)%filename), nf90_nowrite, tile(n)%fileid)

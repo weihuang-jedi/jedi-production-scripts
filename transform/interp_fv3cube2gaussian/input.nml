@@ -1,16 +1,17 @@
 &control_param
- generate_weights = .true.
- gaussian_grid_file = "gaussian_grid.nc4"
- output_flnm = "gaussian_weights.nc4"
+ generate_weights = .false.
+ output_flnm = "interp2gaussian_grid.nc4"
  wgt_flnm = "gaussian_weights.nc4"
- dirname = "/work/noaa/gsienkf/weihuang/UFS-RNR-tools/JEDI.FV3-increments/grid/C96/"
+ dirname = "/work2/noaa/gsienkf/weihuang/production/run/sondes/run_80.40t1n_36p/analysis.2/increment/mem001"
+ has_prefix = .true.
+ prefix = '20200101.120000.'
  use_gaussian_grid = .true.
  nlon = 384
  nlat = 192
  nlev = 127
  nilev = 128
  npnt = 4
- num_types = 1
- data_types = "C96_grid_spec.tile"
+ num_types = 2
+ data_types = 'fv_core.res.tile', 'fv_tracer.res.tile',
 /
 

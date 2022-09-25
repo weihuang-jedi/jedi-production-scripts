@@ -99,16 +99,26 @@ PROGRAM fv3interp2latlon
          last = (n == num_types)
          print *, 'n = ', n
          print *, 'last = ', last
-         call generate_header(n, types(n)%tile, latlon, &
-                              trim(data_types(n)), output_flnm, last)
+         if(use_gaussian_grid) then
+            call generate_header4gaussian(n, types(n)%tile, gaussian, &
+                                 trim(data_types(n)), output_flnm, last)
+         else
+            call generate_header(n, types(n)%tile, latlon, &
+                                 trim(data_types(n)), output_flnm, last)
+         end if
       end do
 
       print *, 'File: ', __FILE__, ', line: ', __LINE__
       print *, 'num_types: ', num_types
 
       do n = 1, num_types
-         call interp2latlongrid(trim(data_types(n)), spec, gridstruct, &
-                                types(n)%tile, latlon)
+         if(use_gaussian_grid) then
+            call interp2gaussiangrid(trim(data_types(n)), spec, gridstruct, &
+                                     types(n)%tile, gaussian)
+         else
+            call interp2latlongrid(trim(data_types(n)), spec, gridstruct, &
+                                   types(n)%tile, latlon)
+         end if
       end do
 
       print *, 'File: ', __FILE__, ', line: ', __LINE__
@@ -129,7 +139,11 @@ PROGRAM fv3interp2latlon
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
 
-   call finalize_latlongrid(latlon)
+   if(use_gaussian_grid) then
+      call finalize_gaussiangrid(gaussian)
+   else
+      call finalize_latlongrid(latlon)
+   end if
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
 

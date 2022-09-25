@@ -8,7 +8,7 @@ subroutine write_gaussiangrid(gaussian, flnm)
 
    implicit none
 
-   type(gaussiangrid), intent(in) :: gaussian
+   type(gaussiangrid), intent(inout) :: gaussian
    character(len=*), intent(in) :: flnm
 
    integer :: i, j, n, rc
@@ -109,6 +109,7 @@ end subroutine write_gaussiangrid
 subroutine write_var_attr4gaussian(gaussian)
 
    use netcdf
+   use gaussian_module
 
    implicit none
 
