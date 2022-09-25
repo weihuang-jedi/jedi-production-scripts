@@ -80,7 +80,11 @@ PROGRAM fv3interp2latlon
    else
       print *, 'File: ', __FILE__, ', line: ', __LINE__
       print *, 'wgt_flnm: ', trim(wgt_flnm)
-      call read_weights(latlon, wgt_flnm)
+      if(use_gaussian_grid) then
+         call read_weights4gaussian(gaussian, wgt_flnm)
+      else
+         call read_weights(latlon, wgt_flnm)
+      end if
 
       print *, 'File: ', __FILE__, ', line: ', __LINE__
       print *, 'use_uv_directly: ', use_uv_directly

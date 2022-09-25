@@ -37,6 +37,7 @@ OBJS =	module_namelist.o \
 	latlon_module.o \
 	gaussian_module.o \
 	read_weights.o \
+	read_weights4gaussian.o \
 	output_tilegrid.o \
 	output_gaussiangrid.o \
 	output_latlongrid.o \

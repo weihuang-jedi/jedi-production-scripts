@@ -15,7 +15,7 @@ subroutine generate_header4gaussian(k, tile, gaussian, gridtype, flnm, last)
 
    integer :: rc
 
-   print *, 'Enter generate_header'
+   print *, 'Enter generate_header4gaussian'
    print *, 'k = ', k
    print *, 'gridtype = ', trim(gridtype)
    print *, 'flnm = ', trim(flnm)
@@ -44,7 +44,7 @@ subroutine generate_header4gaussian(k, tile, gaussian, gridtype, flnm, last)
       end if
    end if
 
-   print *, 'Leave generate_header'
+   print *, 'Leave generate_header4gaussian'
 
 end subroutine generate_header4gaussian
 
@@ -114,9 +114,9 @@ subroutine create_coord4gaussian(nt, time, gaussian, flnm)
 
    logical :: fileExists
 
-  !print *, 'Enter create_coord'
-  !print *, 'flnm = ', trim(flnm)
-  !print *, 'nt = ', nt
+   print *, 'Enter create_coord4gaussian'
+   print *, 'flnm = ', trim(flnm)
+   print *, 'nt = ', nt
   !print *, 'time(1:nt) = ', time(1:nt)
 
   !print *, 'gaussian%nlon = ',  gaussian%nlon
@@ -148,7 +148,7 @@ subroutine create_coord4gaussian(nt, time, gaussian, flnm)
    call check_status(rc)
 
    gaussian%ncid = ncid
-  !print *, 'ncid = ', ncid
+   print *, 'ncid = ', ncid
 
    rc = nf90_def_dim(ncid, 'lon', gaussian%nlon, gaussian%dimid_lon)
    call check_status(rc)
@@ -158,11 +158,7 @@ subroutine create_coord4gaussian(nt, time, gaussian, flnm)
    call check_status(rc)
    rc = nf90_def_dim(ncid, 'ilev', gaussian%nilev, gaussian%dimid_ilev)
    call check_status(rc)
-  !rc = nf90_def_dim(ncid, 'layer', gaussian%nlay, gaussian%dimid_lay)
-  !call check_status(rc)
-  !rc = nf90_def_dim(ncid, 'hor', 1, gaussian%dimid_hor)
-  !call check_status(rc)
-  !rc = nf90_def_dim(ncid, 'Time', NF90_UNLIMITED, gaussian%dimidt)
+  !rc = nf90_def_dim(ncid, 'Time', NF90_UNLIMITED, gaussian%dimid_time)
   !call check_status(rc)
 
    call create_global_attr4gaussian(ncid, flnm, 'FV3 to Gaussian Grid', 'Gaussian Grid')
@@ -200,23 +196,19 @@ subroutine create_coord4gaussian(nt, time, gaussian, flnm)
                       "top_down", &
                       "Full Level" )
 
-!  dimids(1) = gaussian%dimidl
-!--Field lay
-!  call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL, &
-!                     'layer', &
-!                     "Layer Coordinate", &
-!                     "top_down", &
-!                     "Altitude" )
+   dimids(1) = gaussian%dimid_ilev
+!--Field hyai
+   call nc_putAttr(gaussian%ncid, nd, dimids, NF90_REAL, &
+                   'hyai', & 'Hydro A Index', 'Pa', &
+                   "Full Level", missing_real)
 
-!  dimids(1) = gaussian%dimidh
-!--Field hor
-!  call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL, &
-!                     "hor", &
-!                     "Horizontal Coordinate", &
-!                     "one_lev", &
-!                     "Horizontal" )
+   dimids(1) = gaussian%dimid_ilev
+!--Field hybi
+   call nc_putAttr(gaussian%ncid, nd, dimids, NF90_REAL, &
+                   'hybi', & 'Hydro B Index', 'unitless', &
+                   "Full Level", missing_real)
 
-!  dimids(1) = gaussian%dimidt
+!  dimids(1) = gaussian%dimid_time
 !--Field time
   !call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL8, &
   !                   "Time", &
@@ -245,7 +237,7 @@ subroutine create_coord4gaussian(nt, time, gaussian, flnm)
   !write time
   !call nc_put1Ddbl0(ncid, 'Time', time, 1, nt)
 
-  !print *, 'Leave create_coord'
+  !print *, 'Leave create_coord4gaussian'
 end subroutine create_coord4gaussian
 
 !-------------------------------------------------------------------------------------
@@ -267,7 +259,7 @@ subroutine create_fv_core_var_attr4gaussian(tile, gaussian)
    real    :: missing_real
    character(len=80) :: long_name, units, coordinates, outname
 
-  !print *, 'Enter create_fv_core_var_attr'
+   print *, 'Enter create_fv_core_var_attr4gaussian'
 
    missing_real = -1.0e38
    missing_int = -999999
@@ -327,7 +319,7 @@ subroutine create_fv_core_var_attr4gaussian(tile, gaussian)
                       trim(coordinates), missing_real)
    end do
 
-  !print *, 'Leave create_fv_core_var_attr'
+   print *, 'Leave create_fv_core_var_attr4gaussian'
 
 end subroutine create_fv_core_var_attr4gaussian
 
