@@ -90,7 +90,6 @@ PROGRAM fv3interp2latlon
       print *, 'use_uv_directly: ', use_uv_directly
       if(use_uv_directly) then
          do n = 1, 6
-            print *, 'n = ', n
             call grid_utils_init(spec(n), gridstruct(n), &
                                  types(1)%tile(n)%nx, types(1)%tile(n)%ny)
          end do

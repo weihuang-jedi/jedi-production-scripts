@@ -6,6 +6,7 @@
  has_prefix = .true.
  prefix = '20200101.120000.'
  use_gaussian_grid = .true.
+ use_uv_directly = .true.
  nlon = 384
  nlat = 192
  nlev = 127

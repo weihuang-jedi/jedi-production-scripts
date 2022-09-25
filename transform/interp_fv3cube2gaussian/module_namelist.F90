@@ -52,7 +52,7 @@ contains
     prefix = '20200101.120000.'
 
     has_prefix = .false.
-    use_uv_directly = .false.
+    use_uv_directly = .true.
 
     nlon = 384
     nlat = 192

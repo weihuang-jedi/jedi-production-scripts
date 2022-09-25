@@ -60,12 +60,12 @@ subroutine interp2gaussiangrid(gridtype, spec, gridstruct, tile, gaussian)
 
    character(len=*),                  intent(in)    :: gridtype
    type(tilespec_type), dimension(6), intent(in)    :: spec
-   type(fv_grid_type), dimension(6), intent(in)     :: gridstruct
+   type(fv_grid_type), dimension(6),  intent(in)    :: gridstruct
    type(tilegrid), dimension(6),      intent(inout) :: tile
-   type(gaussiangrid),                  intent(inout) :: gaussian
+   type(gaussiangrid),                intent(inout) :: gaussian
 
-  !print *, 'Enter interp2gaussiangrid'
-  !print *, 'gridtype = ', trim(gridtype)
+   print *, 'Enter interp2gaussiangrid'
+   print *, 'gridtype = ', trim(gridtype)
 
    if('fv_core.res.tile' == trim(gridtype)) then
       call process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
@@ -109,10 +109,10 @@ subroutine create_coord4gaussian(nt, time, gaussian, flnm)
    integer :: i, nd, rc, ncid
 
    integer, dimension(2) :: dimids
-
-   real, dimension(1) :: hor
-
    logical :: fileExists
+   real    :: missing_real
+
+   missing_real = -1.0e38
 
    print *, 'Enter create_coord4gaussian'
    print *, 'flnm = ', trim(flnm)
@@ -124,8 +124,6 @@ subroutine create_coord4gaussian(nt, time, gaussian, flnm)
   !print *, 'gaussian%nlev = ',  gaussian%nlev
 
    gaussian%filename = trim(flnm)
-
-   hor(1) = 0.0
 
   !print *, 'gaussian%lon = ',  gaussian%lon
   !print *, 'gaussian%lat = ',  gaussian%lat
@@ -260,6 +258,7 @@ subroutine create_fv_core_var_attr4gaussian(tile, gaussian)
    character(len=80) :: long_name, units, coordinates, outname
 
    print *, 'Enter create_fv_core_var_attr4gaussian'
+   print *, 'File: ', __FILE__, ', line: ', __LINE__
 
    missing_real = -1.0e38
    missing_int = -999999
@@ -279,39 +278,33 @@ subroutine create_fv_core_var_attr4gaussian(tile, gaussian)
       nd = 3
 
       long_name = trim(tile(1)%vars(i)%varname)
-      if((trim(tile(1)%vars(i)%varname) == 'ua') .or. &
-         (trim(tile(1)%vars(i)%varname) == 'va') .or. &
-         (trim(tile(1)%vars(i)%varname) == 'delp') .or. &
-         (trim(tile(1)%vars(i)%varname) == 'DZ') .or. &
-         (trim(tile(1)%vars(i)%varname) == 'T')) then
-         if(trim(tile(1)%vars(i)%varname) == 'T') then
-            outname = 'T_inc'
-            long_name = 'air_temperature'
-            units = 'K'
-         else if(trim(tile(1)%vars(i)%varname) == 'ua') then
-            outname = 'u_inc'
-            long_name = 'eastward_wind'
-            units = 'm/s'
-            if(use_uv_directly) then
-               cycle
-            end if
-         else if(trim(tile(1)%vars(i)%varname) == 'va') then
-            outname = 'v_inc'
-            long_name = 'northward_wind'
-            units = 'm/s'
-            if(use_uv_directly) then
-               cycle
-            end if
-         else if(trim(tile(1)%vars(i)%varname) == 'delp') then
-            outname = 'delp_inc'
-            long_name = 'air_pressure_thick'
-            units = 'Pa'
-         else if(trim(tile(1)%vars(i)%varname) == 'DZ') then
-            outname = 'delz_inc'
-            long_name = 'layer_thickness'
-            units = 'm'
-         end if
+      if(trim(tile(1)%vars(i)%varname) == 'T') then
+         outname = 'T_inc'
+         long_name = 'air_temperature'
+         units = 'K'
+      else if(trim(tile(1)%vars(i)%varname) == 'ua') then
+         outname = 'u_inc'
+         long_name = 'eastward_wind'
+         units = 'm/s'
+      else if(trim(tile(1)%vars(i)%varname) == 'va') then
+         outname = 'v_inc'
+         long_name = 'northward_wind'
+         units = 'm/s'
+      else if(trim(tile(1)%vars(i)%varname) == 'delp') then
+         outname = 'delp_inc'
+         long_name = 'air_pressure_thick'
+         units = 'Pa'
+      else if(trim(tile(1)%vars(i)%varname) == 'DZ') then
+         outname = 'delz_inc'
+         long_name = 'layer_thickness'
+         units = 'm'
+      else
+         cycle
       end if
+
+      print *, 'File: ', __FILE__, ', line: ', __LINE__
+      print *, 'outname: ', trim(outname)
+      print *, 'long_name: ', trim(long_name)
 
       call nc_putAttr(gaussian%ncid, nd, dimids, NF90_REAL, &
                       trim(outname), &
@@ -411,14 +404,15 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
    type(tilespec_type), dimension(6), intent(in)    :: spec
    type(tilegrid), dimension(6),      intent(inout) :: tile
    type(fv_grid_type), dimension(6),  intent(in)    :: gridstruct
-   type(gaussiangrid),                  intent(inout) :: gaussian
+   type(gaussiangrid),                intent(inout) :: gaussian
 
    integer :: i, n, rc, uv_count
 
    real, dimension(:,:,:), allocatable :: var3d, u
    character(len=80) :: outname
 
-  !print *, 'Enter process_fv_core'
+   print *, 'Enter process_fv_core4gaussian'
+   print *, 'File: ', __FILE__, ', line: ', __LINE__
 
    allocate(var3d(gaussian%nlon, gaussian%nlat, gaussian%nlev))
    allocate(u(gaussian%nlon, gaussian%nlat, gaussian%nlev))
@@ -439,12 +433,13 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
                name=tile(1)%vars(i)%varname)
       call check_status(rc)
 
-     !print *, 'Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
+      print *, 'File: ', __FILE__, ', line: ', __LINE__
+      print *, 'Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
      !print *, 'Var No. ', i, ': varid: ', tile(1)%varids(i)
 
       if(tile(1)%vars(i)%nDims < 2) cycle
 
-     !print *, 'P 1, Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
+      print *, 'P 1, Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
 
       do n = 1, 6
          rc = nf90_inquire_variable(tile(n)%fileid, tile(n)%varids(i), &
@@ -454,73 +449,58 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
         !print *, 'Tile ', n, ', Var No. ', i, ': varid: ', tile(n)%varids(i)
         !print *, 'Tile ', n, ', Var ', i, ': ', trim(tile(n)%vars(i)%varname)
 
-         if((trim(tile(n)%vars(i)%varname) == 'ua') .or. &
-            (trim(tile(n)%vars(i)%varname) == 'va') .or. &
-            (trim(tile(n)%vars(i)%varname) == 'delp') .or. &
+         if((trim(tile(n)%vars(i)%varname) == 'delp') .or. &
             (trim(tile(n)%vars(i)%varname) == 'DZ') .or. &
             (trim(tile(n)%vars(i)%varname) == 'T')) then
-            if(use_uv_directly) then
-               if(trim(tile(n)%vars(i)%varname) == 'ua') then
-                  cycle
-               else if(trim(tile(n)%vars(i)%varname) == 'va') then
-                  cycle
-               end if
-            end if
-
             rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%var3d)
             call check_status(rc)
          end if
       end do
 
+      print *, 'File: ', __FILE__, ', line: ', __LINE__
+
       if((trim(tile(1)%vars(i)%varname) == 'ua') .or. &
-         (trim(tile(1)%vars(i)%varname) == 'va') .or. &
-         (trim(tile(1)%vars(i)%varname) == 'delp') .or. &
-         (trim(tile(1)%vars(i)%varname) == 'DZ') .or. &
-         (trim(tile(1)%vars(i)%varname) == 'T')) then
-         if(use_uv_directly) then
-            if((trim(tile(1)%vars(i)%varname) == 'ua') .or. &
-               (trim(tile(1)%vars(i)%varname) == 'va')) then
-               cycle
-            end if
-         end if
+         (trim(tile(1)%vars(i)%varname) == 'va')) then
+         if(0 == uv_count) then
+            uv_count = 1
+            cycle
+         else if(1 == uv_count) then
+           !print *, 'Interpolate u/v here.'
+            uv_count = 0
 
-         if(use_uv_directly) then
-            if((trim(tile(1)%vars(i)%varname) == 'ua') .or. &
-               (trim(tile(1)%vars(i)%varname) == 'va')) then
-               if(1 == uv_count) then
-                  cycle
-               else if(2 == uv_count) then
-                 !print *, 'Interpolate u/v here.'
-                  uv_count = 0
+            call interp3dvect4gaussian(tile, spec, gridstruct, gaussian, u, var3d)
 
-                  call interp3dvect4gaussian(tile, spec, gridstruct, gaussian, u, var3d)
-                  call nc_put3Dvar0(gaussian%ncid, 'u_inc', &
-                       u, 1, gaussian%nlon, 1, gaussian%nlat, 1, gaussian%nlev)
-                  call nc_put3Dvar0(gaussian%ncid, 'v_inc', &
-                       var3d, 1, gaussian%nlon, 1, gaussian%nlat, 1, gaussian%nlev)
-                  cycle
-               end if
-            end if
+            call nc_put3Dvar0(gaussian%ncid, 'u_inc', &
+                 u, 1, gaussian%nlon, 1, gaussian%nlat, 1, gaussian%nlev)
+            call nc_put3Dvar0(gaussian%ncid, 'v_inc', &
+                 var3d, 1, gaussian%nlon, 1, gaussian%nlat, 1, gaussian%nlev)
+            cycle
          end if
-         if(trim(tile(1)%vars(i)%varname) == 'T') then
-            outname = 'T_inc'
-         else if(trim(tile(1)%vars(i)%varname) == 'delp') then
-            outname = 'delp_inc'
-         else if(trim(tile(1)%vars(i)%varname) == 'DZ') then
-            outname = 'delz_inc'
-         else
-            outname = trim(tile(1)%vars(i)%varname)
-         end if
-         call interp3dvar4gaussian(tile, gaussian, var3d)
-         call nc_put3Dvar0(gaussian%ncid, trim(outname), &
-              var3d, 1, gaussian%nlon, 1, gaussian%nlat, 1, gaussian%nlev)
       end if
+
+      print *, 'File: ', __FILE__, ', line: ', __LINE__
+
+      if(trim(tile(1)%vars(i)%varname) == 'T') then
+         outname = 'T_inc'
+      else if(trim(tile(1)%vars(i)%varname) == 'delp') then
+         outname = 'delp_inc'
+      else if(trim(tile(1)%vars(i)%varname) == 'DZ') then
+         outname = 'delz_inc'
+      else
+         cycle
+      end if
+
+      print *, 'File: ', __FILE__, ', line: ', __LINE__
+
+      call interp3dvar4gaussian(tile, gaussian, var3d)
+      call nc_put3Dvar0(gaussian%ncid, trim(outname), &
+           var3d, 1, gaussian%nlon, 1, gaussian%nlat, 1, gaussian%nlev)
    end do
 
    deallocate(var3d)
    deallocate(u)
 
-  !print *, 'Leave process_fv_core'
+   print *, 'Leave process_fv_core4gaussian'
 
 end subroutine process_fv_core4gaussian
 

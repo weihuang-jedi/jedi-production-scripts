@@ -34,7 +34,7 @@ subroutine read_weights4gaussian(gaussian, wgt_flnm)
    call nc_get1Dvar0(ncid, 'lat', gaussian%lat, 1, gaussian%nlat)
 
    !read lev
-   call nc_get1Dvar0(ncid, 'lat', gaussian%lev, 1, gaussian%nlev)
+   call nc_get1Dvar0(ncid, 'lev', gaussian%lev, 1, gaussian%nlev)
 
    !read hyai
    call nc_get1Dvar0(ncid, 'hyai', gaussian%hyai, 1, gaussian%nilev)
