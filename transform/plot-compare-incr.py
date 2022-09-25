@@ -138,11 +138,8 @@ class GeneratePlot():
 if __name__== '__main__':
   debug = 1
   output = 0
-  gsifile = '/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/run/solver_halo_aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
- #jedifile = '/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/run/solver_RoundRobin_aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
-  jedifile = '/work2/noaa/gsienkf/weihuang/jedi/case_study/aircraft/run_80.40t1n_36p/analysis/increment/xainc.20200110_030000z.nc4'
 
-  gsifile = 'fv3_increment6.nc'
+  gsifile = 'interp2gaussian_grid.nc4'
   jedifile = 'xainc.20200101_120000z.nc4'
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
@@ -174,14 +171,11 @@ if __name__== '__main__':
   gp.set_cblevs(cblevs=cblevs)
 
 #-----------------------------------------------------------------------------------------
- #jedi_varlist = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
- #gsi_varlist = ['T', 'ua', 'va', 'sphum', 'delp', 'DZ', 'o3mr']
-  jedi_varlist = ['T', 'delp', 'sphum']
-  gsi_varlist = ['T_inc', 'delp_inc', 'sphum_inc']
+  jedi_varlist = ['T', 'ua', 'va', 'delp', 'DZ', 'sphum', 'o3mr']
+  gsi_varlist = ['T_inc', 'u_inc', 'v_inc', 'delp_inc', 'delz_inc', 'sphum_inc', 'o3mr_inc']
 
-  unitlist = ['Unit (C)', 'Unit (Pa)', 'Unit (m', 'Unit (kg/kg)']
- #unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)',
- #            'Unit (kg/kg)', 'Unit (Pa)', 'Unit (m)', 'Unit (ppm)']
+  unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)', 'Unit (Pa)',
+              'Unit (m)', 'Unit (kg/kg)', 'Unit (kg/kg)']
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(jedi_varlist)):
@@ -194,7 +188,8 @@ if __name__== '__main__':
 
     gp.set_label(unitlist[n])
 
-    for lev in range(5, nlev, 10):
+   #for lev in range(5, nlev, 10):
+    for lev in range(nlev):
       v0 = gsivar[lev,:,:]
       v1 = jedivar[lev,:,:]
       v2 = v1 - v0

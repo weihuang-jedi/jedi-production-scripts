@@ -419,11 +419,9 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
 
    uv_count = 0
    do i = 1, tile(1)%nVars
-      rc = nf90_inquire_variable(tile(1)%fileid, tile(1)%varids(i), &
-               ndims=tile(1)%vars(i)%nDims, natts=tile(1)%vars(i)%nAtts)
-      call check_status(rc)
-
-     !print *, 'Var No. ', i, ': ndims = ', tile(1)%vars(i)%nDims
+     !rc = nf90_inquire_variable(tile(1)%fileid, tile(1)%varids(i), &
+     !         ndims=tile(1)%vars(i)%nDims, natts=tile(1)%vars(i)%nAtts)
+     !call check_status(rc)
 
      !rc = nf90_inquire_variable(tile(1)%fileid, tile(1)%varids(i), &
      !         dimids=tile(1)%vars(i)%dimids)
@@ -441,41 +439,52 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
 
       print *, 'P 1, Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
 
-      do n = 1, 6
-         rc = nf90_inquire_variable(tile(n)%fileid, tile(n)%varids(i), &
+      if((trim(tile(1)%vars(i)%varname) == 'delp') .or. &
+         (trim(tile(1)%vars(i)%varname) == 'DZ') .or. &
+         (trim(tile(1)%vars(i)%varname) == 'T')) then
+         do n = 1, 6
+            rc = nf90_inquire_variable(tile(n)%fileid, tile(n)%varids(i), &
                   name=tile(n)%vars(i)%varname)
-         call check_status(rc)
+            call check_status(rc)
 
-        !print *, 'Tile ', n, ', Var No. ', i, ': varid: ', tile(n)%varids(i)
-        !print *, 'Tile ', n, ', Var ', i, ': ', trim(tile(n)%vars(i)%varname)
-
-         if((trim(tile(n)%vars(i)%varname) == 'delp') .or. &
-            (trim(tile(n)%vars(i)%varname) == 'DZ') .or. &
-            (trim(tile(n)%vars(i)%varname) == 'T')) then
             rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%var3d)
             call check_status(rc)
-         end if
-      end do
+         end do
+      else if(trim(tile(1)%vars(i)%varname) == 'ua') then
+         do n = 1, 6
+            rc = nf90_inquire_variable(tile(n)%fileid, tile(n)%varids(i), &
+                  name=tile(n)%vars(i)%varname)
+            call check_status(rc)
+
+            rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%var3du)
+            call check_status(rc)
+         end do
+      else if(trim(tile(1)%vars(i)%varname) == 'va') then
+         do n = 1, 6
+            rc = nf90_inquire_variable(tile(n)%fileid, tile(n)%varids(i), &
+                  name=tile(n)%vars(i)%varname)
+            call check_status(rc)
+
+            rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%var3dv)
+            call check_status(rc)
+         end do
+      end if
 
       print *, 'File: ', __FILE__, ', line: ', __LINE__
 
       if((trim(tile(1)%vars(i)%varname) == 'ua') .or. &
          (trim(tile(1)%vars(i)%varname) == 'va')) then
-         if(0 == uv_count) then
-            uv_count = 1
-            cycle
-         else if(1 == uv_count) then
+         if(1 == uv_count) then
            !print *, 'Interpolate u/v here.'
-            uv_count = 0
-
             call interp3dvect4gaussian(tile, spec, gridstruct, gaussian, u, var3d)
 
             call nc_put3Dvar0(gaussian%ncid, 'u_inc', &
                  u, 1, gaussian%nlon, 1, gaussian%nlat, 1, gaussian%nlev)
             call nc_put3Dvar0(gaussian%ncid, 'v_inc', &
                  var3d, 1, gaussian%nlon, 1, gaussian%nlat, 1, gaussian%nlev)
-            cycle
          end if
+         uv_count = uv_count + 1
+         cycle
       end if
 
       print *, 'File: ', __FILE__, ', line: ', __LINE__

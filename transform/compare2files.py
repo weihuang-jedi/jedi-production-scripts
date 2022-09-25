@@ -7,7 +7,8 @@ import netCDF4 as nc4
 debug = 1
 
 jediori = 'xainc.20200101_120000z.nc4'
-jedinew = 'jedi_increment.nc4'
+#jedinew = 'jedi_increment.nc4'
+jedinew = 'interp2gaussian_grid.nc4'
 
 ncori = nc4.Dataset(jediori, 'r')
 ncnew = nc4.Dataset(jedinew, 'r')

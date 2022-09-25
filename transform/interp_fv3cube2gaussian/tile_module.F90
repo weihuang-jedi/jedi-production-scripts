@@ -172,8 +172,8 @@ contains
       allocate(tile(n)%var1d(tile(n)%nx))
       allocate(tile(n)%var2d(tile(n)%nx, tile(n)%ny))
       allocate(tile(n)%var3d(tile(n)%nx, tile(n)%ny, tile(n)%nz))
-      allocate(tile(n)%var3du(tile(n)%nx, tile(n)%ny+1, tile(n)%nz))
-      allocate(tile(n)%var3dv(tile(n)%nx+1, tile(n)%ny, tile(n)%nz))
+      allocate(tile(n)%var3du(tile(n)%nx, tile(n)%ny, tile(n)%nz))
+      allocate(tile(n)%var3dv(tile(n)%nx, tile(n)%ny, tile(n)%nz))
       allocate(tile(n)%u(tile(n)%nx, tile(n)%ny, tile(n)%nz))
 
       rc = nf90_inq_varids(tile(n)%fileid, tile(n)%nVars, tile(n)%varids)
