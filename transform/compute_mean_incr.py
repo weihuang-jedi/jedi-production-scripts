@@ -59,25 +59,26 @@ class ComputeMeanIncrements():
     self.vardict = {}
    #copy all var in baselist
     for name, variable in ncf.variables.items():
-     #print('name: ', name)
+      print('name: ', name)
      #print('variable: ', variable)
       if name in self.baselist:
+        print('name %s is in self.baselist' %(name))
         x = self.ncout.createVariable(name, variable.datatype, variable.dimensions)
         self.ncout.variables[name][:] = ncf.variables[name][:]
        #copy variable attributes all at once via dictionary
         self.ncout.variables[name].setncatts(ncf.variables[name].__dict__)
       else:
+        print('name %s is not in self.baselist' %(name))
         var = ncf.variables[name][:,:,:]
         self.vardict[name] = var
 
-    print('vardict.keys(): ', vardict.keys())
+    print('vardict.keys(): ', self.vardict.keys())
     for n in range(1, len(self.ncarray)):
       ncf = self.ncarray[n]
       for name in self.vardict.keys():
         var = ncf.variables[name][:,:,:]
         self.vardict[name] += var
 
-    ncf = self.ncarray[0]
     for name, variable in ncf.variables.items():
       print('working on: name: ', name)
       if name in self.baselist:
@@ -99,8 +100,8 @@ if __name__== '__main__':
   outfilename = 'mean_incr.nc4'
 
  #-----------------------------------------------------------------------------------------
-  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'dir=',
-                                                'datestr='])
+  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'dir=', 'datestr=',
+                                                'casename=', 'outfilename='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
@@ -112,6 +113,8 @@ if __name__== '__main__':
       outfilename = a
     elif o in ('--casename'):
       casename = a
+    elif o in ('--outfilename'):
+      outfilename = a
     else:
       assert False, 'unhandled option'
 

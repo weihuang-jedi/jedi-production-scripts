@@ -29,9 +29,12 @@ for variable in varlist:
   n = 0
   while(n < mni):
     n += 1
-    imgname = '%s/%s_lev_%3.3d.png' %(dir, variable, n)
+    imgname = '%s/%s_inc_lev_%3.3d.png' %(dir, variable, n)
+    print('No %d image name: %s' %(n, imgname))
     if(os.path.exists(imgname)):
       image_files.append(imgname)
+
+  print('%s has %d images, movie name: %s' %(variable, len(image_files), videoname))
 
   if(len(image_files) > 5):
     clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_files, fps=fps)

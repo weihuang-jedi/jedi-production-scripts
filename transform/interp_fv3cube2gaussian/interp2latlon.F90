@@ -784,6 +784,12 @@ subroutine process_fv_core(spec, tile, gridstruct, latlon)
                     u, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
                call nc_put3Dvar0(latlon%ncid, 'va', &
                     var3d, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
+            else
+              call interp3dvar(tile, latlon, var3d)
+             !call nc_put3Dvar(latlon%ncid, trim(tile(1)%vars(i)%varname), &
+             !     var3d, 1, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
+              call nc_put3Dvar0(latlon%ncid, trim(tile(1)%vars(i)%varname), &
+                   var3d, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
             end if
          end if
          cycle
