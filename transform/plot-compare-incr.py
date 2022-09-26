@@ -60,7 +60,9 @@ class GeneratePlot():
       axs[i].coastlines(resolution='auto', color='k')
       axs[i].gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
-      axs[i].set_title(self.runname[i])
+      title = '%s min: %f, max: %f' %(self.runname[i], np.min(pvar), np.max(pvar))
+     #axs[i].set_title(self.runname[i])
+      axs[i].set_title(title)
 
    #Adjust the location of the subplots on the page to make room for the colorbar
     fig.subplots_adjust(bottom=0.1, top=0.9, left=0.05, right=0.8,
@@ -94,7 +96,7 @@ class GeneratePlot():
   def set_default(self):
     self.imagename = 'sample.png'
 
-    self.runname = ['GSI', 'JEDI', 'JEDI - GSI']
+    self.runname = ['INTP', 'JEDI', 'JEDI - INTP']
 
    #cmapname = coolwarm, bwr, rainbow, jet, seismic
     self.cmapname = 'bwr'
@@ -139,11 +141,11 @@ if __name__== '__main__':
   debug = 1
   output = 0
 
-  gsifile = 'interp2gaussian_grid.nc4'
+  intpfile = 'interp2gaussian_grid.nc4'
   jedifile = 'xainc.20200101_120000z.nc4'
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
-                                                'jedifile=', 'gsifile='])
+                                                'jedifile=', 'intpfile='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
@@ -151,15 +153,15 @@ if __name__== '__main__':
       output = int(a)
     elif o in ('--jedifile'):
       jedifile = a
-    elif o in ('--gsifile'):
-      gsifile = a
+    elif o in ('--intpfile'):
+      intpfile = a
     else:
       assert False, 'unhandled option'
 
   gp = GeneratePlot(debug=debug, output=output)
 
   ncjedi = netcdf_dataset(jedifile)
-  ncgsi = netcdf_dataset(gsifile)
+  ncintp = netcdf_dataset(intpfile)
   lats = ncjedi.variables['lat'][:]
   lons = ncjedi.variables['lon'][:]
 
@@ -171,26 +173,25 @@ if __name__== '__main__':
   gp.set_cblevs(cblevs=cblevs)
 
 #-----------------------------------------------------------------------------------------
-  jedi_varlist = ['T', 'ua', 'va', 'delp', 'DZ', 'sphum', 'o3mr']
-  gsi_varlist = ['T_inc', 'u_inc', 'v_inc', 'delp_inc', 'delz_inc', 'sphum_inc', 'o3mr_inc']
+  jedi_varlist = ['ua', 'va', 'T', 'delp', 'DZ', 'sphum', 'o3mr']
+  intp_varlist = ['u_inc', 'v_inc', 'T_inc', 'delp_inc', 'delz_inc', 'sphum_inc', 'o3mr_inc']
 
-  unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)', 'Unit (Pa)',
+  unitlist = ['Unit (m/s)', 'Unit (m/s)', 'Unit (C)', 'Unit (Pa)',
               'Unit (m)', 'Unit (kg/kg)', 'Unit (kg/kg)']
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(jedi_varlist)):
     jedivar = ncjedi.variables[jedi_varlist[n]][0, :, :, :]
-    gsivar = ncgsi.variables[gsi_varlist[n]][:, :, :]
+    intpvar = ncintp.variables[intp_varlist[n]][:, :, :]
 
     nlev, nlat, nlon = jedivar.shape
     print('jedivar.shape = ', jedivar.shape)
-    print('gsivar.shape = ', gsivar.shape)
+    print('intpvar.shape = ', intpvar.shape)
 
     gp.set_label(unitlist[n])
 
-   #for lev in range(5, nlev, 10):
-    for lev in range(nlev):
-      v0 = gsivar[lev,:,:]
+    for lev in range(1, nlev, 10):
+      v0 = intpvar[lev,:,:]
       v1 = jedivar[lev,:,:]
       v2 = v1 - v0
 
@@ -215,5 +216,5 @@ if __name__== '__main__':
 
 #-----------------------------------------------------------------------------------------
   ncjedi.close()
-  ncgsi.close()
+  ncintp.close()
 
