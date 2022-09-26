@@ -174,8 +174,10 @@ if __name__== '__main__':
   gp.set_cblevs(cblevs=cblevs)
 
 #-----------------------------------------------------------------------------------------
-  jedi_varlist = ['ua', 'va', 'T', 'delp', 'DZ', 'sphum', 'o3mr']
-  intp_varlist = ['u_inc', 'v_inc', 'T_inc', 'delp_inc', 'delz_inc', 'sphum_inc', 'o3mr_inc']
+ #jedi_varlist = ['ua', 'va', 'T', 'delp', 'DZ', 'sphum', 'o3mr']
+ #intp_varlist = ['u_inc', 'v_inc', 'T_inc', 'delp_inc', 'delz_inc', 'sphum_inc', 'o3mr_inc']
+  jedi_varlist = ['T', 'delp', 'DZ', 'sphum', 'o3mr']
+  intp_varlist = ['T', 'delp', 'delz', 'sphum', 'o3mr']
 
   unitlist = ['Unit (m/s)', 'Unit (m/s)', 'Unit (C)', 'Unit (Pa)',
               'Unit (m)', 'Unit (kg/kg)', 'Unit (kg/kg)']

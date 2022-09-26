@@ -124,10 +124,6 @@ contains
     deallocate(latlon%wgt)
     deallocate(latlon%pos)
 
-    rc =  nf90_close(latlon%ncid)
-    call check_status(rc)
-    print *, 'Finished Write to file: ', trim(latlon%filename)
-
   end subroutine finalize_latlongrid
 
   !----------------------------------------------------------------------
