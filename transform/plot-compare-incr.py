@@ -141,8 +141,8 @@ if __name__== '__main__':
   debug = 1
   output = 0
 
- #intpfile = 'interp2gaussian_grid.nc4'
-  intpfile = 'interp2latlon_grid.nc4'
+ #intpfile = 'interp2latlon_grid.nc4'
+  intpfile = 'interp2gaussian_grid.nc4'
   jedifile = 'xainc.20200101_120000z.nc4'
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
@@ -174,8 +174,9 @@ if __name__== '__main__':
   gp.set_cblevs(cblevs=cblevs)
 
 #-----------------------------------------------------------------------------------------
-  jedi_varlist = ['ua', 'va', 'T', 'delp', 'DZ', 'sphum', 'o3mr']
   intp_varlist = ['u_inc', 'v_inc', 'T_inc', 'delp_inc', 'delz_inc', 'sphum_inc', 'o3mr_inc']
+ #intp_varlist = ['ua', 'va', 'T', 'delp', 'DZ', 'sphum', 'o3mr']
+  jedi_varlist = ['ua', 'va', 'T', 'delp', 'DZ', 'sphum', 'o3mr']
 
   unitlist = ['Unit (m/s)', 'Unit (m/s)', 'Unit (C)', 'Unit (Pa)',
               'Unit (m)', 'Unit (kg/kg)', 'Unit (kg/kg)']

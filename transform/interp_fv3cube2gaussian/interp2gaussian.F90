@@ -406,7 +406,7 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
    type(fv_grid_type), dimension(6),  intent(in)    :: gridstruct
    type(gaussiangrid),                intent(inout) :: gaussian
 
-   integer :: i, n, rc, uv_count
+   integer :: i, n, rc
 
    real, dimension(:,:,:), allocatable :: var3d, u
    character(len=80) :: outname
@@ -417,7 +417,6 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
    allocate(var3d(gaussian%nlon, gaussian%nlat, gaussian%nlev))
    allocate(u(gaussian%nlon, gaussian%nlat, gaussian%nlev))
 
-   uv_count = 0
    do i = 1, tile(1)%nVars
      !rc = nf90_inquire_variable(tile(1)%fileid, tile(1)%varids(i), &
      !         ndims=tile(1)%vars(i)%nDims, natts=tile(1)%vars(i)%nAtts)
@@ -441,6 +440,8 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
 
       if((trim(tile(1)%vars(i)%varname) == 'delp') .or. &
          (trim(tile(1)%vars(i)%varname) == 'DZ') .or. &
+         (trim(tile(1)%vars(i)%varname) == 'ua') .or. &
+         (trim(tile(1)%vars(i)%varname) == 'va') .or. &
          (trim(tile(1)%vars(i)%varname) == 'T')) then
          do n = 1, 6
             rc = nf90_inquire_variable(tile(n)%fileid, tile(n)%varids(i), &
@@ -450,40 +451,7 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
             rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%var3d)
             call check_status(rc)
          end do
-      else if(trim(tile(1)%vars(i)%varname) == 'ua') then
-         do n = 1, 6
-            rc = nf90_inquire_variable(tile(n)%fileid, tile(n)%varids(i), &
-                  name=tile(n)%vars(i)%varname)
-            call check_status(rc)
-
-            rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%var3du)
-            call check_status(rc)
-         end do
-      else if(trim(tile(1)%vars(i)%varname) == 'va') then
-         do n = 1, 6
-            rc = nf90_inquire_variable(tile(n)%fileid, tile(n)%varids(i), &
-                  name=tile(n)%vars(i)%varname)
-            call check_status(rc)
-
-            rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%var3dv)
-            call check_status(rc)
-         end do
-      end if
-
-      print *, 'File: ', __FILE__, ', line: ', __LINE__
-
-      if((trim(tile(1)%vars(i)%varname) == 'ua') .or. &
-         (trim(tile(1)%vars(i)%varname) == 'va')) then
-         if(1 == uv_count) then
-           !print *, 'Interpolate u/v here.'
-            call interp3dvect4gaussian(tile, spec, gridstruct, gaussian, u, var3d)
-
-            call nc_put3Dvar0(gaussian%ncid, 'u_inc', &
-                 u, 1, gaussian%nlon, 1, gaussian%nlat, 1, gaussian%nlev)
-            call nc_put3Dvar0(gaussian%ncid, 'v_inc', &
-                 var3d, 1, gaussian%nlon, 1, gaussian%nlat, 1, gaussian%nlev)
-         end if
-         uv_count = uv_count + 1
+      else
          cycle
       end if
 
@@ -495,8 +463,10 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
          outname = 'delp_inc'
       else if(trim(tile(1)%vars(i)%varname) == 'DZ') then
          outname = 'delz_inc'
-      else
-         cycle
+      else if(trim(tile(1)%vars(i)%varname) == 'ua') then
+         outname = 'u_inc'
+      else if(trim(tile(1)%vars(i)%varname) == 'va') then
+         outname = 'v_inc'
       end if
 
       print *, 'File: ', __FILE__, ', line: ', __LINE__

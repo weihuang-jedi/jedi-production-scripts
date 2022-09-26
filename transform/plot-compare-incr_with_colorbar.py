@@ -52,10 +52,8 @@ class GeneratePlot():
       cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
 
       cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
-                         extend=self.extend,
+                         levels=self.clevs, extend=self.extend,
                          alpha=self.alpha, cmap=self.cmapname)
-     #                   levels=self.clevs, extend=self.extend,
-     #                   alpha=self.alpha, cmap=self.cmapname)
 
       axs[i].set_extent([-180, 180, -90, 90], crs=proj)
       axs[i].coastlines(resolution='auto', color='k')
@@ -70,12 +68,11 @@ class GeneratePlot():
                         wspace=0.02, hspace=0.02)
 
    #Add a colorbar axis at the bottom of the graph
-   #cbar_ax = fig.add_axes([0.85, 0.1, 0.05, 0.85])
+    cbar_ax = fig.add_axes([0.85, 0.1, 0.05, 0.85])
 
    #Draw the colorbar
-   #cbar=fig.colorbar(cs, cax=cbar_ax, pad=self.pad, ticks=self.cblevs,
-   #cbar=fig.colorbar(cs, cax=cbar_ax, pad=self.pad,
-   #                  orientation='vertical')
+    cbar=fig.colorbar(cs, cax=cbar_ax, pad=self.pad, ticks=self.cblevs,
+                      orientation='vertical')
 
    #cbar.set_label(self.label, rotation=90)
 
@@ -145,7 +142,6 @@ if __name__== '__main__':
 
   basefile = 'gsi_mean_incr.nc4'
   jedifile = 'jedi_mean_incr.nc4'
- #jedifile = 'xainc.20200101_120000z.nc4'
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
                                                 'jedifile=', 'basefile='])
@@ -185,7 +181,6 @@ if __name__== '__main__':
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(jedi_varlist)):
-   #jedivar = ncjedi.variables[jedi_varlist[n]][0, :, :, :]
     jedivar = ncjedi.variables[jedi_varlist[n]][:, :, :]
     basevar = ncbase.variables[base_varlist[n]][:, :, :]
 
@@ -193,6 +188,12 @@ if __name__== '__main__':
     print('jedivar.shape = ', jedivar.shape)
     print('basevar.shape = ', basevar.shape)
 
+   #if(jedi_varlist[n] in ['u_inc', 'v_inc', 'T_inc']):
+   #  clevs = np.arange(-1.0, 1.01, 0.01)
+   #  cblevs = np.arange(-1.0, 1.1, 0.1)
+
+   #gp.set_clevs(clevs=clevs)
+   #gp.set_cblevs(cblevs=cblevs)
     gp.set_label(unitlist[n])
 
     for lev in range(1, nlev, 10):

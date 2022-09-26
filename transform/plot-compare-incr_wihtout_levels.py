@@ -51,10 +51,11 @@ class GeneratePlot():
 
       cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
 
-      cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
-                         levels=self.clevs, extend=self.extend,
+      cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, 100, transform=proj,
+                         extend=self.extend,
                          alpha=self.alpha, cmap=self.cmapname)
-     #               cmap=self.cmapname, extend='both')
+     #                   levels=self.clevs, extend=self.extend,
+     #                   alpha=self.alpha, cmap=self.cmapname)
 
       axs[i].set_extent([-180, 180, -90, 90], crs=proj)
       axs[i].coastlines(resolution='auto', color='k')
@@ -64,18 +65,7 @@ class GeneratePlot():
      #axs[i].set_title(self.runname[i])
       axs[i].set_title(title)
 
-   #Adjust the location of the subplots on the page to make room for the colorbar
-    fig.subplots_adjust(bottom=0.1, top=0.9, left=0.05, right=0.8,
-                        wspace=0.02, hspace=0.02)
-
-   #Add a colorbar axis at the bottom of the graph
-    cbar_ax = fig.add_axes([0.85, 0.1, 0.05, 0.85])
-
-   #Draw the colorbar
-    cbar=fig.colorbar(cs, cax=cbar_ax, pad=self.pad, ticks=self.cblevs,
-                      orientation='vertical')
-
-    cbar.set_label(self.label, rotation=90)
+      plt.colorbar(cs, ax=axs[i])
 
    #Add a big title at the top
     plt.suptitle(self.title)
@@ -96,7 +86,7 @@ class GeneratePlot():
   def set_default(self):
     self.imagename = 'sample.png'
 
-    self.runname = ['INTP', 'JEDI', 'JEDI - INTP']
+    self.runname = ['GSI', 'JEDI', 'JEDI - GSI']
 
    #cmapname = coolwarm, bwr, rainbow, jet, seismic
     self.cmapname = 'bwr'
@@ -141,12 +131,12 @@ if __name__== '__main__':
   debug = 1
   output = 0
 
- #intpfile = 'interp2gaussian_grid.nc4'
-  intpfile = 'interp2latlon_grid.nc4'
-  jedifile = 'xainc.20200101_120000z.nc4'
+  basefile = 'gsi_mean_incr.nc4'
+  jedifile = 'jedi_mean_incr.nc4'
+ #jedifile = 'xainc.20200101_120000z.nc4'
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
-                                                'jedifile=', 'intpfile='])
+                                                'jedifile=', 'basefile='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
@@ -154,15 +144,15 @@ if __name__== '__main__':
       output = int(a)
     elif o in ('--jedifile'):
       jedifile = a
-    elif o in ('--intpfile'):
-      intpfile = a
+    elif o in ('--basefile'):
+      basefile = a
     else:
       assert False, 'unhandled option'
 
   gp = GeneratePlot(debug=debug, output=output)
 
   ncjedi = netcdf_dataset(jedifile)
-  ncintp = netcdf_dataset(intpfile)
+  ncbase = netcdf_dataset(basefile)
   lats = ncjedi.variables['lat'][:]
   lons = ncjedi.variables['lon'][:]
 
@@ -175,32 +165,32 @@ if __name__== '__main__':
 
 #-----------------------------------------------------------------------------------------
  #jedi_varlist = ['ua', 'va', 'T', 'delp', 'DZ', 'sphum', 'o3mr']
- #intp_varlist = ['u_inc', 'v_inc', 'T_inc', 'delp_inc', 'delz_inc', 'sphum_inc', 'o3mr_inc']
-  jedi_varlist = ['ua', 'va', 'T', 'delp', 'DZ', 'sphum', 'o3mr']
-  intp_varlist = ['ua', 'va', 'T', 'delp', 'delz', 'sphum', 'o3mr']
+  base_varlist = ['u_inc', 'v_inc', 'T_inc', 'delp_inc', 'delz_inc', 'sphum_inc', 'o3mr_inc']
+  jedi_varlist = ['u_inc', 'v_inc', 'T_inc', 'delp_inc', 'delz_inc', 'sphum_inc', 'o3mr_inc']
 
   unitlist = ['Unit (m/s)', 'Unit (m/s)', 'Unit (C)', 'Unit (Pa)',
               'Unit (m)', 'Unit (kg/kg)', 'Unit (kg/kg)']
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(jedi_varlist)):
-    jedivar = ncjedi.variables[jedi_varlist[n]][0, :, :, :]
-    intpvar = ncintp.variables[intp_varlist[n]][:, :, :]
+   #jedivar = ncjedi.variables[jedi_varlist[n]][0, :, :, :]
+    jedivar = ncjedi.variables[jedi_varlist[n]][:, :, :]
+    basevar = ncbase.variables[base_varlist[n]][:, :, :]
 
     nlev, nlat, nlon = jedivar.shape
     print('jedivar.shape = ', jedivar.shape)
-    print('intpvar.shape = ', intpvar.shape)
+    print('basevar.shape = ', basevar.shape)
 
     gp.set_label(unitlist[n])
 
     for lev in range(1, nlev, 10):
-      v0 = intpvar[lev,:,:]
+      v0 = basevar[lev,:,:]
       v1 = jedivar[lev,:,:]
       v2 = v1 - v0
 
       data = [v0, v1, v2]
 
-      title = '%s at Level %d' %(jedi_varlist[n], lev)
+      title = '%s at Level %d, 2020010206' %(jedi_varlist[n], lev)
       gp.set_title(title)
 
       print('Plotting ', title)
@@ -219,5 +209,5 @@ if __name__== '__main__':
 
 #-----------------------------------------------------------------------------------------
   ncjedi.close()
-  ncintp.close()
+  ncbase.close()
 

@@ -336,8 +336,6 @@ subroutine create_fv_core_var_attr(tile, latlon)
          end if
       else if((trim(tile(1)%vars(i)%varname) == 'ua') .or. &
               (trim(tile(1)%vars(i)%varname) == 'va') .or. &
-              (trim(tile(1)%vars(i)%varname) == 'u') .or. &
-              (trim(tile(1)%vars(i)%varname) == 'v') .or. &
               (trim(tile(1)%vars(i)%varname) == 'W') .or. &
               (trim(tile(1)%vars(i)%varname) == 'delp') .or. &
               (trim(tile(1)%vars(i)%varname) == 'DZ') .or. &
@@ -351,22 +349,14 @@ subroutine create_fv_core_var_attr(tile, latlon)
          else if(trim(tile(1)%vars(i)%varname) == 'DZ') then
             long_name = 'layer_thickness'
             units = 'm'
-         else if((trim(tile(1)%vars(i)%varname) == 'ua') .or. &
-                 (trim(tile(1)%vars(i)%varname) == 'u')) then
+         else if(trim(tile(1)%vars(i)%varname) == 'ua') then
             outname = 'ua'
             long_name = 'eastward_wind'
             units = 'm/s'
-           !if(use_uv_directly) then
-           !   cycle
-           !end if
-         else if((trim(tile(1)%vars(i)%varname) == 'va') .or. &
-                 (trim(tile(1)%vars(i)%varname) == 'v')) then
+         else if(trim(tile(1)%vars(i)%varname) == 'va') then
             outname = 'va'
             long_name = 'northward_wind'
             units = 'm/s'
-           !if(use_uv_directly) then
-           !   cycle
-           !end if
          end if
       end if
 
@@ -722,18 +712,6 @@ subroutine process_fv_core(spec, tile, gridstruct, latlon)
                  (trim(tile(n)%vars(i)%varname) == 'delp') .or. &
                  (trim(tile(n)%vars(i)%varname) == 'DZ') .or. &
                  (trim(tile(n)%vars(i)%varname) == 'T')) then
-            if(use_uv_directly) then
-               if(trim(tile(n)%vars(i)%varname) == 'ua') then
-                  rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%var3du)
-                  call check_status(rc)
-                  cycle
-               else if(trim(tile(n)%vars(i)%varname) == 'va') then
-                  rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%var3dv)
-                  call check_status(rc)
-                  cycle
-               end if
-            end if
-
             rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%var3d)
             call check_status(rc)
          end if
@@ -750,50 +728,8 @@ subroutine process_fv_core(spec, tile, gridstruct, latlon)
          call nc_put3Dvar0(latlon%ncid, trim(tile(1)%vars(i)%varname), &
               var2d, 1, latlon%nlon, 1, latlon%nlat, 1, 1)
       else if((trim(tile(1)%vars(i)%varname) == 'ua') .or. &
-              (trim(tile(1)%vars(i)%varname) == 'va')) then
-         print *, 'File: ', __FILE__, ', at line: ', __LINE__
-         if(use_uv_directly) then
-            if(trim(tile(1)%vars(i)%varname) == 'ua') then
-               uv_count = uv_count + 1
-            else if(trim(tile(1)%vars(i)%varname) == 'va') then
-               uv_count = uv_count + 1
-            end if
-
-            print *, 'File: ', __FILE__, ', at line: ', __LINE__
-            print *, 'uv_count = ', uv_count
-
-            if(2 == uv_count) then
-              !print *, 'Interpolate u/v here.'
-               uv_count = 0
-
-              !do n = 1, 6
-              !   call cubed_to_latlon(tile(n)%var3du, tile(n)%var3dv, tile(n)%u, tile(n)%var3d, &
-              !                        gridstruct(n), tile(n)%nx, tile(n)%ny, tile(n)%nz)
-              !end do
-
-              !call interp3dvar(tile, latlon, var3d)
-              !call nc_put3Dvar0(latlon%ncid, 'va', &
-              !     var3d, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
-              !call copy_u2var3d(tile)
-              !call interp3dvar(tile, latlon, var3d)
-              !call nc_put3Dvar0(latlon%ncid, 'ua', &
-              !     var3d, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
-
-               call interp3dvect(tile, spec, gridstruct, latlon, u, var3d)
-               call nc_put3Dvar0(latlon%ncid, 'ua', &
-                    u, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
-               call nc_put3Dvar0(latlon%ncid, 'va', &
-                    var3d, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
-            else
-              call interp3dvar(tile, latlon, var3d)
-             !call nc_put3Dvar(latlon%ncid, trim(tile(1)%vars(i)%varname), &
-             !     var3d, 1, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
-              call nc_put3Dvar0(latlon%ncid, trim(tile(1)%vars(i)%varname), &
-                   var3d, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
-            end if
-         end if
-         cycle
-      else if((trim(tile(1)%vars(i)%varname) == 'W') .or. &
+              (trim(tile(1)%vars(i)%varname) == 'va') .or. &
+              (trim(tile(1)%vars(i)%varname) == 'W') .or. &
               (trim(tile(1)%vars(i)%varname) == 'delp') .or. &
               (trim(tile(1)%vars(i)%varname) == 'DZ') .or. &
               (trim(tile(1)%vars(i)%varname) == 'T')) then
