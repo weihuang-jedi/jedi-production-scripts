@@ -34,7 +34,7 @@ FC_OPTIMIZATIONS =	-g # -O3
 
 ####################################################
 
-FC		=       ifort
+FC		=       mpiifort
 FFLAGS		=       $(FC_US_FLAGS) $(FC_INCLUDES) $(FC_COMPILE_OPTIONS) $(FC_OPTIMIZATIONS) -traceback
 
 LDFLAGS		=       

@@ -48,7 +48,7 @@ OBJS =	module_namelist.o \
 
 ####################################################
 
-deflt :	clean_modulde nc4_lib fv3interp2latlon
+deflt :	clean_modulde nc4_lib fv3interp
 
 clean_modulde :
 	$(RM) latlon_module.f90 latlon_module.mod latlon_module.o tile_module.f90 tile_module.mod tile_module.o
@@ -58,19 +58,19 @@ nc4_lib : $(OBJS)
 	$(AR) libnc4.a $(OBJS)
 	$(RANLIB) libnc4.a
 
-fv3interp2latlon : fv3interp2latlon.o
-	$(FC) -o fv3interp2latlon.exe fv3interp2latlon.o $(FFLAGS) $(LOC_LIBS) \
+fv3interp : fv3interp.o
+	$(FC) -o fv3interp.exe fv3interp.o $(FFLAGS) $(LOC_LIBS) \
 	libnc4.a
 
 clean :
-	$(RM) libnc4.a $(OBJS) fv3interp2latlon.o \
+	$(RM) libnc4.a $(OBJS) fv3interp.o \
 	*.f90 *.mod *.exe
 
 ####################################################
 
 # DEPENDENCIES : only dependencies after this line (don't remove the word DEPENDENCIES)
 
-fv3interp2latlon.o : fv3interp2latlon.F90 \
+fv3interp.o : fv3interp.F90 \
 		tile_module.o \
 		gaussian_module.o \
 		latlon_module.o	\

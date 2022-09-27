@@ -16,6 +16,7 @@ MODULE namelist_module
   character(len=128), dimension(max_types) :: data_types
   integer :: nlat, nlon, nlev, nilev, npnt, num_types
   integer :: debug_level
+  integer :: total_members
   logical :: generate_weights, debug_on, has_prefix, use_uv_directly
   logical :: use_gaussian_grid
 
@@ -35,7 +36,7 @@ contains
                              num_types, data_types, &
                              generate_weights, prefix, &
                              griddirname, grid_type, &
-                             debug_on, debug_level, &
+                             debug_on, debug_level, total_members, &
                              has_prefix, use_uv_directly, &
                              gaussian_grid_file, &
                              use_gaussian_grid
@@ -45,7 +46,7 @@ contains
     griddirname = '/work/noaa/gsienkf/weihuang/UFS-RNR-tools/JEDI.FV3-increments/grid/C96/'
     grid_type = 'C96_grid.tile'
 
-    dirname = '/work2/noaa/gsienkf/weihuang/production/run/sondes/run_80.40t1n_36p/analysis.2/increment/mem001'
+    dirname = '/work2/noaa/gsienkf/weihuang/production/run/sondes/run_80.40t1n_36p/analysis.2/increment'
     gaussian_grid_file = 'gaussian_grid.nc4'
     output_flnm = 'gaussian_grid.nc'
     wgt_flnm = 'weights.nc'
@@ -66,6 +67,7 @@ contains
     generate_weights = .false.
     debug_on = .false.
     debug_level = 0
+    total_members = 80
 
     use_gaussian_grid = .true.
 

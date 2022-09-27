@@ -7,6 +7,8 @@ PROGRAM fv3interp2latlon
    use gaussian_module
    use fv_grid_utils_module
 
+   use mpi
+
    IMPLICIT NONE
 
    type tiletype
@@ -19,14 +21,41 @@ PROGRAM fv3interp2latlon
    type(gaussiangrid)                   :: gaussian
    type(fv_grid_type), dimension(6)     :: gridstruct
 
-   integer :: n
+   integer :: n, nm
    logical :: last
    real, dimension(:), allocatable :: lon, lat
+   integer :: num_procs, myrank, ierr
+   integer :: mymembers, member
+   character(len=10) :: memstr
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
 
+  !Initialize MPI.
+   call MPI_Init(ierr)
+  !Find out the number of processes available.
+   call MPI_Comm_size(MPI_COMM_WORLD, num_procs, ierr)
+  !Determine this process's rank.
+   call MPI_Comm_rank(MPI_COMM_WORLD, myrank, ierr)
+
+   print *, 'num_procs = ', num_procs, ', myrank = ', myrank
+
    call read_namelist('input.nml')
 
+   print *, 'total_members = ', total_members
+
+   mymembers = (total_members + num_procs - 1) / num_procs
+
+   do nm = 1, mymembers
+      member = myrank*mymembers + nm
+      if(member > total_members) then
+         member = 0
+         cycle
+      end if
+      write(memstr, fmt='(a, i3.3)') 'mem', member
+      print *, 'myrank: ', myrank, ', member: ', member, ', memstr: ', trim(memstr)
+   end do
+
+#if 0
    if(num_types < 1) then
       print *, 'num_types must great than 0. eg. must have at least 1 type.'
       stop 111
@@ -153,8 +182,12 @@ PROGRAM fv3interp2latlon
    if(use_uv_directly) then
       call finalize_tilespec(spec)
    end if
+#endif
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
+
+  !End MPI
+   call MPI_Finalize(ierr)
 
 END PROGRAM fv3interp2latlon
 

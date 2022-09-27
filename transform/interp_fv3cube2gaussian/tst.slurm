@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --ntasks-per-node=6
+#SBATCH --ntasks-per-node=40
 #SBATCH -N 1
-#SBATCH -n 6
-#SBATCH -t 01:15:00
+#SBATCH -n 40
+#SBATCH -t 00:15:00
 #SBATCH -A gsienkf
 ##SBATCH --partition=orion
 #SBATCH --partition=bigmem
@@ -16,7 +16,7 @@
  rm -f core* std.out.* std.err.*
 
 #make test
- srun -n 6 test_netcdf4.exe
+ srun -n 40 fv3interp.exe
 
 #cat std.err.0000
 
