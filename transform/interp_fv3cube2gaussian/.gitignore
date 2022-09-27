@@ -2,3 +2,5 @@
 *.o
 *.mod
 *.exe
+t.*
+tst.*

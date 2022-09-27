@@ -8,7 +8,7 @@ MODULE namelist_module
   integer, parameter :: max_types = 5
 
   CHARACTER(LEN=1024) :: program_name
-  character(len=1024) :: dirname
+  character(len=1024) :: indirname, outdirname
   character(len=1024) :: output_flnm, wgt_flnm, prefix
   character(len=1024) :: gaussian_grid_file
   character(len=1024) :: griddirname
@@ -30,7 +30,7 @@ contains
     character(len=1000) :: line
 
     ! Namelist definition.
-    namelist /control_param/ dirname, &
+    namelist /control_param/ indirname, outdirname, &
                              output_flnm, wgt_flnm, &
                              nlat, nlon, nlev, nilev, npnt, &
                              num_types, data_types, &
@@ -46,9 +46,10 @@ contains
     griddirname = '/work/noaa/gsienkf/weihuang/UFS-RNR-tools/JEDI.FV3-increments/grid/C96/'
     grid_type = 'C96_grid.tile'
 
-    dirname = '/work2/noaa/gsienkf/weihuang/production/run/sondes/run_80.40t1n_36p/analysis.2/increment'
+    indirname = '/work2/noaa/gsienkf/weihuang/production/run/sondes/run_80.40t1n_36p/analysis.2/increment'
+    outdirname = '/work2/noaa/gsienkf/weihuang/production/run/sondes/run_80.40t1n_36p/analysis.2/increment'
     gaussian_grid_file = 'gaussian_grid.nc4'
-    output_flnm = 'gaussian_grid.nc'
+    output_flnm = 'fv3_increments.nc'
     wgt_flnm = 'weights.nc'
     prefix = '20200101.120000.'
 
@@ -99,12 +100,13 @@ contains
            'Invalid line in namelist: '//trim(line)
     end if
 
-    print *, 'file_path: ', trim(file_path)
-    write(*, control_param)
+   !print *, 'file_path: ', trim(file_path)
+   !write(*, control_param)
 
     close(nml_unit)
 
-   !print *, 'dirname: ', trim(dirname)
+   !print *, 'indirname: ', trim(indirname)
+   !print *, 'outdirname: ', trim(outdirname)
    !print *, 'data_types(1): ', trim(data_types(1))
    !print *, 'nlon, nlat, nlev, npnt = ', nlon, nlat, nlev, npnt
 

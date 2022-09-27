@@ -57,6 +57,7 @@ module tile_module
      real, dimension(:, :, :), allocatable :: var3d, var3du, var3dv, u
 
      type(vartype), dimension(:), allocatable :: vars
+     logical                                  :: initialized
   end type tilegrid
 
   type tilespec_type
@@ -83,8 +84,8 @@ contains
 
     implicit none
 
-    type(tilegrid), dimension(6), intent(out) :: tile
-    character(len=*),             intent(in)  :: dname, ftype
+    type(tilegrid), dimension(6), intent(inout) :: tile
+    character(len=*),             intent(in)    :: dname, ftype
 
     integer :: i, k, n, rc
     integer :: ny2, ik
@@ -93,9 +94,9 @@ contains
     character(len=1024) :: dimname, varname
 
    !print *, 'Enter initialize_tilegrid'
-    print *, 'File: ', __FILE__, ', line: ', __LINE__
-    print *, 'dname: <', trim(dname), '>'
-    print *, 'ftype: <', trim(ftype), '>'
+   !print *, 'File: ', __FILE__, ', line: ', __LINE__
+   !print *, 'dname: <', trim(dname), '>'
+   !print *, 'ftype: <', trim(ftype), '>'
 
     include_parents = 0
 
@@ -119,10 +120,12 @@ contains
      !print *, 'Tile ', n, ', nVars: ', tile(n)%nVars
      !print *, 'Tile ', n, ', nDims: ', tile(n)%nDims
 
-      ! Allocate memory.
-      allocate(tile(n)%dimids(tile(n)%nDims))
-      allocate(tile(n)%dimlen(tile(n)%nDims))
-      allocate(tile(n)%dimnames(tile(n)%nDims))
+      if(.not. tile(n)%initialized) then
+        !Allocate memory.
+         allocate(tile(n)%dimids(tile(n)%nDims))
+         allocate(tile(n)%dimlen(tile(n)%nDims))
+         allocate(tile(n)%dimnames(tile(n)%nDims))
+      end if
 
       rc = nf90_inq_dimids(tile(n)%fileid, tile(n)%nDims, tile(n)%dimids, include_parents)
       call check_status(rc)
@@ -163,18 +166,20 @@ contains
      !print *, 'tile(n)%nx = ', tile(n)%nx, ', tile(n)%ny = ', tile(n)%ny, &
      !       ', tile(n)%nz = ', tile(n)%nz, ', tile(n)%nt = ', tile(n)%nt
 
-      ! Allocate memory.
-      allocate(tile(n)%varids(tile(n)%nVars))
-      allocate(tile(n)%vars(tile(n)%nVars))
+      if(.not. tile(n)%initialized) then
+        !Allocate memory.
+         allocate(tile(n)%varids(tile(n)%nVars))
+         allocate(tile(n)%vars(tile(n)%nVars))
 
-      allocate(tile(n)%time(tile(n)%nt))
+         allocate(tile(n)%time(tile(n)%nt))
 
-      allocate(tile(n)%var1d(tile(n)%nx))
-      allocate(tile(n)%var2d(tile(n)%nx, tile(n)%ny))
-      allocate(tile(n)%var3d(tile(n)%nx, tile(n)%ny, tile(n)%nz))
-      allocate(tile(n)%var3du(tile(n)%nx, tile(n)%ny, tile(n)%nz))
-      allocate(tile(n)%var3dv(tile(n)%nx, tile(n)%ny, tile(n)%nz))
-      allocate(tile(n)%u(tile(n)%nx, tile(n)%ny, tile(n)%nz))
+         allocate(tile(n)%var1d(tile(n)%nx))
+         allocate(tile(n)%var2d(tile(n)%nx, tile(n)%ny))
+         allocate(tile(n)%var3d(tile(n)%nx, tile(n)%ny, tile(n)%nz))
+         allocate(tile(n)%var3du(tile(n)%nx, tile(n)%ny, tile(n)%nz))
+         allocate(tile(n)%var3dv(tile(n)%nx, tile(n)%ny, tile(n)%nz))
+         allocate(tile(n)%u(tile(n)%nx, tile(n)%ny, tile(n)%nz))
+      end if
 
       rc = nf90_inq_varids(tile(n)%fileid, tile(n)%nVars, tile(n)%varids)
       call check_status(rc)
@@ -187,9 +192,11 @@ contains
          call check_status(rc)
         !print *, 'Var No. ', i, ': ndims = ', tile(n)%vars(i)%nDims
 
-         allocate(tile(n)%vars(i)%dimids(tile(n)%vars(i)%nDims))
-         allocate(tile(n)%vars(i)%dimlen(tile(n)%vars(i)%nDims))
-         allocate(tile(n)%vars(i)%dimnames(tile(n)%vars(i)%nDims))
+         if(.not. tile(n)%initialized) then
+            allocate(tile(n)%vars(i)%dimids(tile(n)%vars(i)%nDims))
+            allocate(tile(n)%vars(i)%dimlen(tile(n)%vars(i)%nDims))
+            allocate(tile(n)%vars(i)%dimnames(tile(n)%vars(i)%nDims))
+         end if
 
          rc = nf90_inquire_variable(tile(n)%fileid, tile(n)%varids(i), &
                                     dimids=tile(n)%vars(i)%dimids)
@@ -211,23 +218,30 @@ contains
         !call check_status(rc)
 
          if(trim(tile(n)%vars(i)%varname) == 'grid_lont') then
-            allocate(tile(n)%lon(tile(n)%nx, tile(n)%ny))
+            if(.not. tile(n)%initialized) &
+               allocate(tile(n)%lon(tile(n)%nx, tile(n)%ny))
             rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%lon)
             call check_status(rc)
          else if(trim(tile(n)%vars(i)%varname) == 'grid_latt') then
-            allocate(tile(n)%lat(tile(n)%nx, tile(n)%ny))
+            if(.not. tile(n)%initialized) &
+               allocate(tile(n)%lat(tile(n)%nx, tile(n)%ny))
             rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%lat)
             call check_status(rc)
          else if(trim(tile(n)%vars(i)%varname) == 'grid_xt') then
-            allocate(tile(n)%xt(tile(n)%nx))
+            if(.not. tile(n)%initialized) &
+               allocate(tile(n)%xt(tile(n)%nx))
             rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%xt)
             call check_status(rc)
          else if(trim(tile(n)%vars(i)%varname) == 'grid_yt') then
-            allocate(tile(n)%yt(tile(n)%ny))
+            if(.not. tile(n)%initialized) &
+               allocate(tile(n)%yt(tile(n)%ny))
             rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%yt)
             call check_status(rc)
          else if(trim(tile(n)%vars(i)%varname) == 'Time') then
-            if(.not. allocated(tile(n)%time)) allocate(tile(n)%time(tile(n)%nt))
+            if(.not. allocated(tile(n)%time)) then
+               if(.not. tile(n)%initialized) &
+                  allocate(tile(n)%time(tile(n)%nt))
+            end if
             rc = nf90_get_var(tile(n)%fileid, tile(n)%varids(i), tile(n)%time)
            !print *, 'time(', n, ')%time = ', tile(n)%time(1:tile(n)%nt)
             call check_status(rc)
@@ -244,6 +258,8 @@ contains
             tile(n)%vars(i)%dimlen(k) = tile(n)%dimlen(ik)
          end do
       end do
+
+      tile(n)%initialized = .true.
     end do
 
    !print *, 'Leave initialize_tilegrid'
