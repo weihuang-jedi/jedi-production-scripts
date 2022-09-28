@@ -113,7 +113,7 @@ def plot_lines(plevs, gsirms, jedirms, header='temp', output=0):
  #print('gsirms = ', gsirms)
  #print('jedirms = ', jedirms)
 
-  print('pressure   gsirms    jedrms')
+  print('pressure   gsirms    jedirms')
   for n in range(len(plevs)):
     print('%4.0f %7.4f %7.4f' %(plevs[n], gsirms[n], jedirms[n]))
 
@@ -282,10 +282,12 @@ class Plot_JEDI_GSI_Diag():
                          levels=self.clevs, extend=self.extend,
                          alpha=self.alpha, cmap=self.cmapname)
 
-      axs[i].set_title(self.runname[i])
+      title = '%s min: %5.2f, max: %5.2f' %(self.runname[i], vmin, vmax)
+      axs[i].set_title(title)
 
       axs[i].set_xlabel('Hours', fontsize=10)
-      axs[i].set_ylabel('hPa', fontsize=10)
+      if(i < 1):
+        axs[i].set_ylabel('hPa', fontsize=10)
 
       axs[i].set_xticks(xt, xlabels)
       axs[i].set_yticks(yt, ylabels)
@@ -309,7 +311,7 @@ class Plot_JEDI_GSI_Diag():
     plt.suptitle(title)
 
     fig.canvas.draw()
-    plt.tight_layout()
+   #plt.tight_layout()
 
     if(self.output):
       if(self.imagename is None):
@@ -455,11 +457,24 @@ if __name__== '__main__':
 
   plot_lines(p, gsirms, jedirms, header='wind', output=output)
 
+  gsirms = gsi_stats['rms_humid']
+  jedirms = jedi_stats['rms_humid']
+
+  for n in range(len(jedirms)):
+    if(jedirms[n] < 0.0):
+      jedirms[n] = 0.0
+    if(gsirms[n] < 0.0):
+      gsirms[n] = 0.0
+
+  plot_lines(p, gsirms, jedirms, header='humidity', output=output)
+
+#-----------------------------------------------------------------------------------------
   ncgsi = nc4.Dataset(gsifile, 'r')
   ncjedi = nc4.Dataset(jedifile, 'r')
 
   times = ncgsi.variables['times']
   plevs = ncgsi.variables['plevs']
+
 #-----------------------------------------------------------------------------------------
   clevs = np.arange(-1.0, 1.01, 0.01)
   cblevs = np.arange(-1.0, 1.1, 0.1)
@@ -468,13 +483,16 @@ if __name__== '__main__':
   pjgd.set_cblevs(cblevs=cblevs)
 
 #-----------------------------------------------------------------------------------------
-  varlist = ['omf_rmswind', 'omf_rmstemp']
-  unitlist = ['Unit (m/s)', 'Unit (C)']
+  varlist = ['omf_rmswind', 'omf_rmstemp', 'omf_rmshumid']
+  unitlist = ['Unit (m/s)', 'Unit (C)', 'Unit (g/kg)']
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(varlist)):
     jedivar = ncjedi.variables[varlist[n]][:, :]
     gsivar = ncgsi.variables[varlist[n]][:, :]
+
+    jedivar = np.where(jedivar < 0.0, 0.0, jedivar)
+    gsivar = np.where(gsivar < 0.0, 0.0, gsivar)
 
     ntime, nlev = jedivar.shape
     print('jedivar.shape = ', jedivar.shape)
