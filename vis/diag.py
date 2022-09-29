@@ -116,12 +116,15 @@ class DiagObFit():
     plevs[:] = self.levs
     plevs.units = 'hPa'
     times = ncout.createVariable('times',np.float64,'time')
-    times.units = 'hours since 01-01-01'
+    times.units = 'hours since 1970-01-01'
     omf_wnd = ncout.createVariable('omf_rmswind',np.float32, ('time','plevs'))
     omf_temp = ncout.createVariable('omf_rmstemp',np.float32, ('time','plevs'))
     omf_tempb = ncout.createVariable('omf_biastemp',np.float32, ('time','plevs'))
     temp_obcounts = ncout.createVariable('temp_obcounts',np.int32, ('time','plevs'))
     wind_obcounts = ncout.createVariable('wind_obcounts',np.int32, ('time','plevs'))
+
+    omf_humid = ncout.createVariable('omf_rmshumid',np.float32, ('time','plevs'))
+    humid_obcounts = ncout.createVariable('humid_obcounts',np.int32, ('time','plevs'))
 
     rms_wind = np.zeros(len(self.levs),np.float)
     rms_temp = np.zeros(len(self.levs),np.float)
@@ -325,6 +328,8 @@ class DiagObFit():
         nobs_humid =  np.where(counts[::-1] == -1, 0, counts[::-1]).sum()
         count_humid += counts[::-1]
         rms_humid_mean = np.sqrt(np.bincount(pindx,minlength=self.nlevs,weights=omf_q**2)/counts[::-1])[0:18].mean()
+        omf_humid[ndate] = np.bincount(pindx,minlength=self.nlevs,weights=omf_q**2)/counts[::-1]
+        humid_obcounts[ndate] = counts[::-1]
       else:
         rms_humid_mean = np.zeros(rms_temp_mean.shape, rms_temp_mean.dtype)
 
@@ -375,9 +380,10 @@ if __name__== '__main__':
   debug = 1
   output = 0
 
-  sdate = '2020010206'
-  edate = '2020010612'
-  datadir = '/work2/noaa/gsienkf/weihuang/gsi'
+  sdate = '2020010106'
+  edate = '2020010312'
+  case = 'gsi'
+  datadir = '/scratch2/BMC/gsienkf/Wei.Huang/producttion/run'
   type = 'C96_lgetkf_sondesonly'
   runid = 'ensmean'
   hem = 'NH'

@@ -491,8 +491,9 @@ if __name__== '__main__':
     jedivar = ncjedi.variables[varlist[n]][:, :]
     gsivar = ncgsi.variables[varlist[n]][:, :]
 
-    jedivar = np.where(jedivar < 0.0, 0.0, jedivar)
-    gsivar = np.where(gsivar < 0.0, 0.0, gsivar)
+    if('omf_rmshumid' == varlist[n]):
+      jedivar = np.where(jedivar < 0.0, 0.0, 1.0e7*jedivar)
+      gsivar = np.where(gsivar < 0.0, 0.0, 1.0e7*gsivar)
 
     ntime, nlev = jedivar.shape
     print('jedivar.shape = ', jedivar.shape)
