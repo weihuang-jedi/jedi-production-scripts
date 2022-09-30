@@ -49,7 +49,7 @@ def cal_datetohrs(date):
 #=========================================================================
 class DiagObFit():
   def __init__(self, debug=0, output=0, sdate=None, edate=None,
-               runid=None, hem='HS', sondesonly=True,
+               runid=None, hem='HS', sondesonly=True, interval=6,
                noair=False, aironly=False, latbound=30):
     msg = 'sdate edate runid hem'
     if(sdate is None or edate is None):
@@ -68,7 +68,7 @@ class DiagObFit():
     self.aironly = aironly
     self.latbound = latbound
 
-    self.dates = get_dates(sdate, edate, 6)
+    self.dates = get_dates(sdate, edate, interval)
 
     self.set_default()
 
@@ -380,10 +380,12 @@ if __name__== '__main__':
   debug = 1
   output = 0
 
-  sdate = '2020010106'
-  edate = '2020010312'
+  interval = 12
+  sdate = '2020010112'
+  edate = '2020010218'
   case = 'gsi'
-  datadir = '/scratch2/BMC/gsienkf/Wei.Huang/producttion/run'
+ #datadir = '/scratch2/BMC/gsienkf/Wei.Huang/producttion/run'
+  datadir = '/work2/noaa/gsienkf/weihuang/gsi'
   type = 'C96_lgetkf_sondesonly'
   runid = 'ensmean'
   hem = 'NH'
@@ -394,7 +396,7 @@ if __name__== '__main__':
   latbound=30
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=', 'sdate=', 'edate=',
-                                                'datadir=', 'runid=', 'hem=', 'type='])
+                                                'datadir=', 'runid=', 'hem=', 'type=', 'interval='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
@@ -412,16 +414,19 @@ if __name__== '__main__':
       hem = a
     elif o in ('--type'):
       type = a
+    elif o in ('--interval'):
+      interval = int(a)
     else:
       assert False, 'unhandled option'
 
 #-----------------------------------------------------------------------------------------
 
   dof = DiagObFit(debug=debug, output=output, sdate=sdate, edate=edate,
-                  runid=runid, hem=hem, sondesonly=sondesonly,
+                  runid=runid, hem=hem, sondesonly=sondesonly, interval=interval,
                   noair=noair, aironly=aironly, latbound=latbound)
 
   for case in ['gsi', 'jedi']:
+ #for case in ['old.gsi', 'jedi']:
     datapath = '%s/%s_%s' %(datadir, case, type)
     outfile = '%s_stats' %(case)
     dof.process(datapath, outfile)

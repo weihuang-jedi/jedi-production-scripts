@@ -271,8 +271,10 @@ class Plot_JEDI_GSI_Diag():
         self.cblevs = np.arange(0.0, 11.0, 1.0)
       else:
         self.cmapname = 'bwr'
-        self.clevs = np.arange(-2.0, 2.1, 0.1)
-        self.cblevs = np.arange(-2.0, 3.0, 1.0)
+       #self.clevs = np.arange(-2.0, 2.1, 0.1)
+       #self.cblevs = np.arange(-2.0, 3.0, 1.0)
+        self.clevs = np.arange(-0.5, 0.52, 0.02)
+        self.cblevs = np.arange(-0.5, 0.6, 0.2)
 
      #if((vmax - vmin) > 1.0e-5):
      #  self.clevs, self.cblevs = get_plot_levels(pvar)
@@ -408,6 +410,7 @@ if __name__== '__main__':
   output = 0
   type = 'bfg'
   gsifile = 'gsi_stats.nc'
+ #gsifile = 'old.gsi_stats.nc'
   jedifile = 'jedi_stats.nc'
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=', 'type=',
@@ -430,6 +433,7 @@ if __name__== '__main__':
   pjgd = Plot_JEDI_GSI_Diag(debug=debug, output=output)
 
   gsi_stats = read_stats('gsi_stats')
+ #gsi_stats = read_stats('old.gsi_stats')
   jedi_stats = read_stats('jedi_stats')
 
  #stats['p'].append(float(item[0]))
