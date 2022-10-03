@@ -53,8 +53,8 @@ local ensemble DA:
     lengthscale: 14
     lengthscale units: levels
   inflation:
-    rtps: 0.5
-    rtpp: 0.6
+    rtps: 0.85
+    rtpp: 0.0
     mult: 1.0
 
 # Analysis output
@@ -90,7 +90,7 @@ output ensemble increments:
 
 output:
   filetype: auxgrid
-  gridtype: latlon
+  gridtype: gaussian
   filename: analysis/mean/mean.
 
 output increment:

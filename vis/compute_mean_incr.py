@@ -102,7 +102,8 @@ if __name__== '__main__':
   debug = 1
 
   workdir = '/work2/noaa/gsienkf/weihuang/gsi/gsi_C96_lgetkf_sondesonly'
-  datestr = '2020010200'
+ #datestr = '2020010200'
+  datestr = '2020010600'
   outfile = 'mean_incr.nc4'
 
  #-----------------------------------------------------------------------------------------

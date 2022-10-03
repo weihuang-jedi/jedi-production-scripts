@@ -569,6 +569,10 @@ subroutine interp3dvar4gaussian(tile, gaussian, var3d)
   integer :: i, j, k, n, ik, jk, m
   real :: w
 
+!$OMP parallel do default(none) &
+!$OMP shared(gaussian%nlat, gaussian%nlon, gaussian%nlev, gaussian%npnt) &
+!$OMP shared(gaussian%tile, gaussian%ilon, gaussian%jlat, gaussian%wgt, var3d) &
+!$OMP private(ik, jk, i, j, k, m, n, w)
   do jk = 1, gaussian%nlat
   do ik = 1, gaussian%nlon
      do k = 1, gaussian%nlev

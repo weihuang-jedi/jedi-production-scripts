@@ -16,15 +16,22 @@
 #--------------------------------------------------------------------------------------------
  cd /work2/noaa/gsienkf/weihuang/production/run/vis
 
-#time python compute_mean_incr.py \
-#  --workdir=/work2/noaa/gsienkf/weihuang/gsi/gsi_C96_lgetkf_sondesonly \
-#  --datestr=2020010200 \
-#  --outfile=gsi_2020010200_mean_incr.nc4
+ time python fcst-jedi-gsi.py --output=1 --type=sfg
+ time python fcst-jedi-gsi.py --output=1 --type=sanl
 
-#time python compute_mean_incr.py \
-#  --workdir=/work2/noaa/gsienkf/weihuang/gsi/jedi_C96_lgetkf_sondesonly \
-#  --datestr=2020010200 \
-#  --outfile=jedi_2020010200_mean_incr.nc4
+ exit 0
+
+ time python compute_mean_incr.py \
+   --workdir=/work2/noaa/gsienkf/weihuang/gsi/gsi_C96_lgetkf_sondesonly \
+   --datestr=2020010600 \
+   --outfile=gsi_2020010600_mean_incr.nc4
+
+ time python compute_mean_incr.py \
+   --workdir=/work2/noaa/gsienkf/weihuang/gsi/jedi_C96_lgetkf_sondesonly \
+   --datestr=2020010600 \
+   --outfile=jedi_2020010600_mean_incr.nc4
+
+ exit 0
 
  time python fcst-jedi-gsi.py --output=1 --type=sfg
  time python fcst-jedi-gsi.py --output=1 --type=sanl

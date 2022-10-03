@@ -77,7 +77,11 @@ PROGRAM fv3interp
             end do
          end if
 
-         write(memdirname, fmt='(3a)') trim(indirname), '/', trim(memstr)
+         if(1 == total_members) then
+            memdirname = trim(indirname)
+         else
+            write(memdirname, fmt='(3a)') trim(indirname), '/', trim(memstr)
+         end if
          print *, 'memdirname: <', trim(memdirname), &
                   '>, data_types(', n, ') = <', trim(data_types(n)), '>'
          call initialize_tilegrid(types(n)%tile, trim(memdirname), trim(data_types(n)))
@@ -91,12 +95,12 @@ PROGRAM fv3interp
          end if
       end do
 
-      if(1 == nm) then
-         do n = 1, 6
-            call grid_utils_init(spec(n), gridstruct(n), &
-                                 types(1)%tile(n)%nx, types(1)%tile(n)%ny)
-         end do
-      end if
+!     if(1 == nm) then
+!        do n = 1, 6
+!           call grid_utils_init(spec(n), gridstruct(n), &
+!                                types(1)%tile(n)%nx, types(1)%tile(n)%ny)
+!        end do
+!     end if
 
       print *, 'File: ', __FILE__, ', line: ', __LINE__
      !print *, 'latlon%nlev: ', latlon%nlev, ', latlon%nlay: ', latlon%nlay
@@ -130,9 +134,13 @@ PROGRAM fv3interp
             print *, 'n = ', n
             print *, 'last = ', last
             
-            write(outfullname, fmt='(5a)') trim(indirname), '/', trim(memstr), &
-                                           '/', trim(output_flnm)
-           !                               '/INPUT/', trim(output_flnm)
+            if(1 == total_members) then
+               write(outfullname, fmt='(3a)') trim(indirname), '/', trim(output_flnm)
+            else
+               write(outfullname, fmt='(5a)') trim(indirname), '/', trim(memstr), &
+                                              '/', trim(output_flnm)
+              !                               '/INPUT/', trim(output_flnm)
+            end if
             if(use_gaussian_grid) then
                call generate_header4gaussian(n, types(n)%tile, gaussian, &
                                        trim(data_types(n)), outfullname, last)
@@ -149,11 +157,10 @@ PROGRAM fv3interp
    end do
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
-   print *, 'use_uv_directly: ', use_uv_directly
 
-   do n = 1, 6
-      call grid_utils_exit(gridstruct(n))
-   end do
+!  do n = 1, 6
+!     call grid_utils_exit(gridstruct(n))
+!  end do
 
    print *, 'File: ', __FILE__, ', line: ', __LINE__
 

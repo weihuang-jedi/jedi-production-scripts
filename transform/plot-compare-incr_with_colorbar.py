@@ -51,6 +51,13 @@ class GeneratePlot():
 
       cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
 
+     #if(i < 2):
+     #  self.clevs = np.arange(-1.0, 1.01, 0.01)
+     #  self.cblevs = np.arange(-1.0, 1.1, 0.1)
+     #else:
+     #  self.clevs = np.arange(-0.1, 0.101, 0.001)
+     #  self.cblevs = np.arange(-0.1, 0.11, 0.01)
+
       cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
                          levels=self.clevs, extend=self.extend,
                          alpha=self.alpha, cmap=self.cmapname)
@@ -140,8 +147,11 @@ if __name__== '__main__':
   debug = 1
   output = 0
 
-  basefile = 'gsi_mean_incr.nc4'
-  jedifile = 'jedi_mean_incr.nc4'
+ #basefile = 'gsi_mean_incr.nc4'
+ #jedifile = 'jedi_mean_incr.nc4'
+
+  basefile = 'gsi_2020010600_mean_incr.nc4'
+  jedifile = 'jedi_2020010600_mean_incr.nc4'
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
                                                 'jedifile=', 'basefile='])
@@ -167,7 +177,6 @@ if __name__== '__main__':
 #-----------------------------------------------------------------------------------------
   clevs = np.arange(-1.0, 1.01, 0.01)
   cblevs = np.arange(-1.0, 1.1, 0.1)
-
   gp.set_clevs(clevs=clevs)
   gp.set_cblevs(cblevs=cblevs)
 
@@ -203,7 +212,7 @@ if __name__== '__main__':
 
       data = [v0, v1, v2]
 
-      title = '%s at Level %d, 2020010206' %(jedi_varlist[n], lev)
+      title = '%s at Level %d, 2020010600' %(jedi_varlist[n], lev)
       gp.set_title(title)
 
       print('Plotting ', title)
