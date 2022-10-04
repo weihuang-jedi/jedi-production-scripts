@@ -1,6 +1,8 @@
-*.png
 gsi_stats
 gsi_stats.nc
 jedi_stats
 jedi_stats.nc
 input.nml
+log.*
+*.csv
+*.png

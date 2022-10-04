@@ -99,7 +99,7 @@ def read_stats(filename):
   return stats
 
 #=========================================================================
-def plot_lines(plevs, gsirms, jedirms, header='temp', output=0):
+def plot_lines(plevs, gsiQCrms, filterrms, header='temp', output=0):
   try:
     plt.close('all')
     plt.clf()
@@ -110,24 +110,24 @@ def plot_lines(plevs, gsirms, jedirms, header='temp', output=0):
   title = header + ' RMS'
 
  #print('plevs = ', plevs)
- #print('gsirms = ', gsirms)
- #print('jedirms = ', jedirms)
+ #print('gsiQCrms = ', gsiQCrms)
+ #print('filterrms = ', filterrms)
 
   print('Variable name: ', header)
-  print('pressure   gsirms    jedirms')
+  print('pressure   gsiQCrms    filterrms')
   k = len(plevs)
   for n in range(len(plevs)):
     k -= 1
-    print('%4.0f %7.4f %7.4f' %(plevs[k], gsirms[k], jedirms[k]))
+    print('%4.0f %7.4f %7.4f' %(plevs[k], gsiQCrms[k], filterrms[k]))
 
   pmin = 0.0
- #pmin = np.min(jedirms)
- #gmin = np.min(gsirms)
+ #pmin = np.min(filterrms)
+ #gmin = np.min(gsiQCrms)
  #if(pmin > gmin):
  #  pmin = gmin
 
-  pmax = np.max(jedirms)
-  gmax = np.max(gsirms)
+  pmax = np.max(filterrms)
+  gmax = np.max(gsiQCrms)
   if(pmax < gmax):
     pmax = gmax
   vmax = 0.0
@@ -156,12 +156,12 @@ def plot_lines(plevs, gsirms, jedirms, header='temp', output=0):
   xd = []
   for pres in plevs:
     yp.append(1000-pres)
-    jmg = jedirms[k] - gsirms[k]
+    jmg = filterrms[k] - gsiQCrms[k]
     xd.append(jmg)
     k += 1
 
-  ax.plot(gsirms, yp, color='blue', linewidth=2, alpha=0.9)
-  ax.plot(jedirms, yp, color='red', linewidth=2, alpha=0.9)
+  ax.plot(gsiQCrms, yp, color='blue', linewidth=2, alpha=0.9)
+  ax.plot(filterrms, yp, color='red', linewidth=2, alpha=0.9)
 
   plt.xscale('linear')
  #plt.xscale('log', base=2)
@@ -181,7 +181,7 @@ def plot_lines(plevs, gsirms, jedirms, header='temp', output=0):
   plt.ylim(0, 1000)
  
  #general title
-  title = 'GSI and JEDI %s rms' %(header)
+  title = 'GSIQC and JEDI-QCFilter %s rms' %(header)
   plt.suptitle(title, fontsize=16, fontweight=1, color='black')
 
  #Create a big subplot
@@ -195,7 +195,7 @@ def plot_lines(plevs, gsirms, jedirms, header='temp', output=0):
   bs.set_ylabel('Pressure (hPa)', labelpad=20)
 
  #labels = ['GSI', 'JEDI', 'JEDI - GSI']
-  labels = ['GSI', 'JEDI']
+  labels = ['GSIQC', 'QCFILTER']
 
  #Create the legend
   fig.legend(ax, labels=labels,
@@ -340,7 +340,7 @@ class Plot_JEDI_GSI_Diag():
   def set_default(self):
     self.imagename = 'sample.png'
 
-    self.runname = ['GSI', 'JEDI', 'JEDI - GSI']
+    self.runname = ['GSIQC', 'QCFILTER', 'QCFILTER - GSIQC']
 
    #cmapname = coolwarm, bwr, rainbow, jet, seismic
    #self.cmapname = 'bwr'
@@ -421,73 +421,66 @@ if __name__== '__main__':
   debug = 1
   output = 0
   type = 'bfg'
-  gsifile = 'gsi_stats.nc'
-  jedifile = 'jedi_stats.nc'
+  gsiQCdir = '/work2/noaa/da/weihuang/jedi/case_study/vis'
+  gsiQCfile = '%s/jedi_stats.nc' %(gsiQCdir)
+  filterfile = 'jedi_stats.nc'
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=', 'type=',
-                                                'jedifile=', 'gsifile='])
+                                                'filterfile=', 'gsiQCfile='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
     elif o in ('--output'):
       output = int(a)
-    elif o in ('--jedifile'):
-      jedifile = a
+    elif o in ('--filterfile'):
+      filterfile = a
     elif o in ('--type'):
       type = a
-    elif o in ('--gsifile'):
-      gsifile = a
+    elif o in ('--gsiQCfile'):
+      gsiQCfile = a
     else:
       assert False, 'unhandled option'
 
 #-----------------------------------------------------------------------------------------
   pjgd = Plot_JEDI_GSI_Diag(debug=debug, output=output)
 
-  gsi_stats = read_stats('gsi_stats')
-  jedi_stats = read_stats('jedi_stats')
+  gsiQCstatsfile = '%s/jedi_stats' %(gsiQCdir)
+  gsiQC_stats = read_stats(gsiQCstatsfile)
+  filter_stats = read_stats('jedi_stats')
 
- #stats['p'].append(float(item[0]))
- #stats['count_wind'].append(float(item[1]))
- #stats['rms_wind'].append(float(item[2]))
- #stats['count_temp'].append(float(item[3]))
- #stats['rms_temp'].append(float(item[4]))
- #stats['bias_temp'].append(float(item[5]))
- #stats['count_humid'].append(float(item[6]))
- #stats['rms_humid'].append(float(item[7]))
- #stats['bias_humid'].append(float(item[8]))
-  p = gsi_stats['p']
-  gsirms = gsi_stats['rms_temp']
-  jedirms = jedi_stats['rms_temp']
+  p = gsiQC_stats['p']
+  gsiQCrms = gsiQC_stats['rms_temp']
+  filterrms = filter_stats['rms_temp']
 
  #print('len(p) = ', len(p))
  #print('p = ', p)
- #print('len(gsirms) = ', len(gsirms))
- #print('gsirms = ', gsirms)
+ #print('len(gsiQCrms) = ', len(gsiQCrms))
+ #print('gsiQCrms = ', gsiQCrms)
 
-  plot_lines(p, gsirms, jedirms, header='temp', output=output)
+  plot_lines(p, gsiQCrms, filterrms, header='temp', output=output)
 
-  gsirms = gsi_stats['rms_wind']
-  jedirms = jedi_stats['rms_wind']
+  gsiQCrms = gsiQC_stats['rms_wind']
+  filterrms = filter_stats['rms_wind']
 
-  plot_lines(p, gsirms, jedirms, header='wind', output=output)
+  plot_lines(p, gsiQCrms, filterrms, header='wind', output=output)
 
-  gsirms = gsi_stats['rms_humid']
-  jedirms = jedi_stats['rms_humid']
+  gsiQCrms = gsiQC_stats['rms_humid']
+  filterrms = filter_stats['rms_humid']
 
-  for n in range(len(jedirms)):
-    if(jedirms[n] < 0.0):
-      jedirms[n] = 0.0
-    if(gsirms[n] < 0.0):
-      gsirms[n] = 0.0
+  for n in range(len(filterrms)):
+    if(filterrms[n] < 0.0):
+      filterrms[n] = 0.0
+    if(gsiQCrms[n] < 0.0):
+      gsiQCrms[n] = 0.0
 
-  plot_lines(p, gsirms, jedirms, header='humidity', output=output)
+  plot_lines(p, gsiQCrms, filterrms, header='humidity', output=output)
 
 #-----------------------------------------------------------------------------------------
-  ncgsi = nc4.Dataset(gsifile, 'r')
-  ncjedi = nc4.Dataset(jedifile, 'r')
+  ncgsiQC = nc4.Dataset(gsiQCfile, 'r')
+  ncfilter = nc4.Dataset(filterfile, 'r')
 
-  times = ncgsi.variables['times']
-  plevs = ncgsi.variables['plevs']
+  times = ncgsiQC.variables['times']
+  plevs = ncgsiQC.variables['plevs']
 
 #-----------------------------------------------------------------------------------------
   clevs = np.arange(-1.0, 1.01, 0.01)
@@ -502,23 +495,28 @@ if __name__== '__main__':
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(varlist)):
-    jedivar = ncjedi.variables[varlist[n]][:, :]
-    gsivar = ncgsi.variables[varlist[n]][:, :]
+    filtervar = ncfilter.variables[varlist[n]][:, :]
+    gsiQCvar = ncgsiQC.variables[varlist[n]][:, :]
 
     if('omf_rmshumid' == varlist[n]):
-      jedivar = np.where(jedivar < 0.0, 0.0, 1.0e7*jedivar)
-      gsivar = np.where(gsivar < 0.0, 0.0, 1.0e7*gsivar)
+      filtervar = np.where(filtervar < 0.0, 0.0, 1.0e7*filtervar)
+      gsiQCvar = np.where(gsiQCvar < 0.0, 0.0, 1.0e7*gsiQCvar)
 
-    ntime, nlev = jedivar.shape
-    print('jedivar.shape = ', jedivar.shape)
-    print('gsivar.shape = ', gsivar.shape)
+    mtime, mlev = gsiQCvar.shape
+    ntime, nlev = filtervar.shape
+    print('filtervar.shape = ', filtervar.shape)
+    print('gsiQCvar.shape = ', gsiQCvar.shape)
+
+    ptime = mtime
+    if(mtime > ntime):
+      ptime = ntime
 
     pjgd.set_label(unitlist[n])
 
-    v0 = gsivar.transpose()
-    v1 = jedivar.transpose()
-   #v0 = gsivar
-   #v1 = jedivar
+    v0 = gsiQCvar[:ptime, :].transpose()
+    v1 = filtervar[:ptime, :].transpose()
+   #v0 = gsiQCvar
+   #v1 = filtervar
     v2 = v1 - v0
 
     data = [v0, v1, v2]
@@ -538,9 +536,9 @@ if __name__== '__main__':
     imagename = 'diag_%s.png' %(varlist[n])
     pjgd.set_imagename(imagename)
 
-    pjgd.plot_contour(times, plevs, data=data)
+    pjgd.plot_contour(times[:ptime], plevs, data=data)
 
 #-----------------------------------------------------------------------------------------
-  ncjedi.close()
-  ncgsi.close()
+  ncfilter.close()
+  ncgsiQC.close()
 
