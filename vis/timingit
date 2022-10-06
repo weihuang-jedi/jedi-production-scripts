@@ -1,0 +1,32 @@
+#!/bin/bash
+
+ set -x
+
+#workdir=/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_JEDI_full_run
+#caselist=(halo_all)
+#workdir=/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_JEDI_full_run_anna1
+#caselist=(halo_all_anna1)
+#workdir=/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_JEDI_full_run_anna2
+#caselist=(halo_all_anna2)
+#workdir=/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_RR_develop
+#caselist=(rr_develop_observer)
+#workdir=/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_RR_anna1
+#caselist=(rr_anna1_observer)
+#workdir=/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_RR_anna2
+#caselist=(rr_anna2_observer)
+#workdir=/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_RR_develop
+#caselist=(halo_develop_solver)
+#workdir=/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_RR_anna1
+#caselist=(halo_anna1_solver)
+ workdir=/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_RR_anna2
+ caselist=(halo_anna2_solver)
+
+ for i in ${!caselist[@]}
+ do
+   rm -rf ${caselist[$i]}
+   mkdir -p ${caselist[$i]}
+   python parallel-stats-profiling.py --casename=${caselist[$i]} --workdir=${workdir} --output=1
+ done
+
+#python make-jedi-perf-panel.py --output=1
+

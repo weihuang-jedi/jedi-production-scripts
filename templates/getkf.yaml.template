@@ -90,7 +90,7 @@ output ensemble increments:
 
 output:
   filetype: auxgrid
-  gridtype: gaussian
+  gridtype: latlon
   filename: analysis/mean/mean.
 
 output increment:
