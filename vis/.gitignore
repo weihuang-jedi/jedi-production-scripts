@@ -1,7 +1,7 @@
-gsi_stats
-gsi_stats.nc
-jedi_stats
-jedi_stats.nc
+gsi_*stats
+gsi_*stats.nc
+jedi_*stats
+jedi_*stats*.nc
 input.nml
 log.*
 *.csv

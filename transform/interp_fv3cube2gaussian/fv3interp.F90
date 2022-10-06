@@ -135,9 +135,9 @@ PROGRAM fv3interp
             print *, 'last = ', last
             
             if(1 == total_members) then
-               write(outfullname, fmt='(3a)') trim(indirname), '/', trim(output_flnm)
+               write(outfullname, fmt='(3a)') trim(outdirname), '/', trim(output_flnm)
             else
-               write(outfullname, fmt='(5a)') trim(indirname), '/', trim(memstr), &
+               write(outfullname, fmt='(5a)') trim(outdirname), '/', trim(memstr), &
                                               '/', trim(output_flnm)
               !                               '/INPUT/', trim(output_flnm)
             end if

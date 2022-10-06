@@ -21,10 +21,10 @@ def hour2date(hour):
 
   date = ct.strftime("%Y-%m-%d:%H")
 
-  print('st = ', st)
-  print('ct = ', ct)
-  print('dt = ', dt)
-  print('date = ', date)
+ #print('st = ', st)
+ #print('ct = ', ct)
+ #print('dt = ', dt)
+ #print('date = ', date)
 
   return date
 
@@ -113,6 +113,7 @@ def plot_lines(plevs, gsirms, jedirms, header='temp', output=0):
  #print('gsirms = ', gsirms)
  #print('jedirms = ', jedirms)
 
+  print('\n')
   print('Variable name: ', header)
   print('pressure   gsirms    jedirms')
   k = len(plevs)
@@ -176,7 +177,7 @@ def plot_lines(plevs, gsirms, jedirms, header='temp', output=0):
   plt.grid()
 
  #Same limits for everybody!
-  print('pmin: %f, pmax: %f' %(pmin, pmax))
+ #print('pmin: %f, pmax: %f' %(pmin, pmax))
   plt.xlim(0, vmax)
   plt.ylim(0, 1000)
  
@@ -268,8 +269,8 @@ class Plot_JEDI_GSI_Diag():
 
       pvar = data[i]
 
-      print('Plot No. ', i)
-      print('\tpvar.shape = ', pvar.shape)
+     #print('Plot No. ', i)
+     #print('\tpvar.shape = ', pvar.shape)
 
       vmin = np.min(pvar)
       vmax = np.max(pvar)
@@ -385,7 +386,7 @@ def get_plot_levels(var):
   vmin = np.min(var)
   vmax = np.max(var)
 
-  print('\tget_plot_lelves: vmin = %f, vmax = %f' %(vmin, vmax))
+ #print('\tget_plot_lelves: vmin = %f, vmax = %f' %(vmin, vmax))
 
   vcen = 0.5*(vmax + vmin)
 
@@ -403,7 +404,7 @@ def get_plot_levels(var):
     pmax = 10.0*int(0.5 + fact*(vmax-vcen)/10.0)/fact + vcen
     pmin = vcen - 10.0*int(0.5 + fact*(vmax-vcen)/10.0)/fact
 
-  print('\tget_plot_lelves: pmin = %f, pcen = %f, pmax = %f' %(pmin, vcen, pmax))
+ #print('\tget_plot_lelves: pmin = %f, pcen = %f, pmax = %f' %(pmin, vcen, pmax))
 
   delt = (pmax - pmin)/200.0
   clevs = np.arange(pmin, pmax + delt, delt)
@@ -510,8 +511,8 @@ if __name__== '__main__':
       gsivar = np.where(gsivar < 0.0, 0.0, 1.0e7*gsivar)
 
     ntime, nlev = jedivar.shape
-    print('jedivar.shape = ', jedivar.shape)
-    print('gsivar.shape = ', gsivar.shape)
+   #print('jedivar.shape = ', jedivar.shape)
+   #print('gsivar.shape = ', gsivar.shape)
 
     pjgd.set_label(unitlist[n])
 
@@ -527,13 +528,13 @@ if __name__== '__main__':
     pjgd.set_title(title)
 
     print('Plotting ', title)
-    print('\tv0.shape = ', v0.shape)
-    print('\tv1.shape = ', v1.shape)
-    print('\tv2.shape = ', v2.shape)
+   #print('\tv0.shape = ', v0.shape)
+   #print('\tv1.shape = ', v1.shape)
+   #print('\tv2.shape = ', v2.shape)
  
-    print('\tv0.max: %f, v0.min: %f' %(np.max(v0), np.min(v0)))
-    print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
-    print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
+   #print('\tv0.max: %f, v0.min: %f' %(np.max(v0), np.min(v0)))
+   #print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
+   #print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
 
     imagename = 'diag_%s.png' %(varlist[n])
     pjgd.set_imagename(imagename)

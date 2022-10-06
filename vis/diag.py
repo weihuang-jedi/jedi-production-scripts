@@ -79,9 +79,9 @@ class DiagObFit():
     self.deltap = 50.
     self.pbot = 975.
     self.nlevs = 23
-    self.levs = np.zeros(self.nlevs, np.float)
-    self.levs1 = np.zeros(self.nlevs, np.float)
-    self.levs2 = np.zeros(self.nlevs, np.float)
+    self.levs = np.zeros(self.nlevs, float)
+    self.levs1 = np.zeros(self.nlevs, float)
+    self.levs2 = np.zeros(self.nlevs, float)
     self.levs[0:18] = self.pbot - self.deltap*np.arange(18)
     self.levs1[0:18] = self.levs[0:18] + 0.5*self.deltap
     self.levs2[0:18] = self.levs[0:18] - 0.5*self.deltap
@@ -96,7 +96,7 @@ class DiagObFit():
     self.levs1[22] = 10.
     self.levs2[22] = 0.
     self.levs1[0] = 1200.
-    self.pbins = np.zeros(self.nlevs+1,np.float)
+    self.pbins = np.zeros(self.nlevs+1,float)
     self.pbins[0:self.nlevs] = self.levs1
     self.pbins[self.nlevs] = self.levs2[-1]
 
@@ -108,34 +108,34 @@ class DiagObFit():
 
     plevs = ncout.createDimension('plevs',len(self.levs))
     times = ncout.createDimension('time',len(self.dates))
-    plevs = ncout.createVariable('plevs',np.float32,'plevs')
-    plevs_up = ncout.createVariable('plevs_up',np.float32,'plevs')
-    plevs_down = ncout.createVariable('plevs_down',np.float32,'plevs')
+    plevs = ncout.createVariable('plevs',float,'plevs')
+    plevs_up = ncout.createVariable('plevs_up',float,'plevs')
+    plevs_down = ncout.createVariable('plevs_down',float,'plevs')
     plevs_up[:] = self.levs2
     plevs_down[:] = self.levs1
     plevs[:] = self.levs
     plevs.units = 'hPa'
     times = ncout.createVariable('times',np.float64,'time')
     times.units = 'hours since 1970-01-01'
-    omf_wnd = ncout.createVariable('omf_rmswind',np.float32, ('time','plevs'))
-    omf_temp = ncout.createVariable('omf_rmstemp',np.float32, ('time','plevs'))
-    omf_tempb = ncout.createVariable('omf_biastemp',np.float32, ('time','plevs'))
-    temp_obcounts = ncout.createVariable('temp_obcounts',np.int32, ('time','plevs'))
-    wind_obcounts = ncout.createVariable('wind_obcounts',np.int32, ('time','plevs'))
+    omf_wnd = ncout.createVariable('omf_rmswind',float, ('time','plevs'))
+    omf_temp = ncout.createVariable('omf_rmstemp',float, ('time','plevs'))
+    omf_tempb = ncout.createVariable('omf_biastemp',float, ('time','plevs'))
+    temp_obcounts = ncout.createVariable('temp_obcounts',int, ('time','plevs'))
+    wind_obcounts = ncout.createVariable('wind_obcounts',int, ('time','plevs'))
 
-    omf_humid = ncout.createVariable('omf_rmshumid',np.float32, ('time','plevs'))
-    humid_obcounts = ncout.createVariable('humid_obcounts',np.int32, ('time','plevs'))
+    omf_humid = ncout.createVariable('omf_rmshumid',float, ('time','plevs'))
+    humid_obcounts = ncout.createVariable('humid_obcounts',int, ('time','plevs'))
 
-    rms_wind = np.zeros(len(self.levs),np.float)
-    rms_temp = np.zeros(len(self.levs),np.float)
-    rms_humid = np.zeros(len(self.levs),np.float)
+    rms_wind = np.zeros(len(self.levs),float)
+    rms_temp = np.zeros(len(self.levs),float)
+    rms_humid = np.zeros(len(self.levs),float)
 
-    bias_temp = np.zeros(len(self.levs),np.float)
-    bias_humid = np.zeros(len(self.levs),np.float)
+    bias_temp = np.zeros(len(self.levs),float)
+    bias_humid = np.zeros(len(self.levs),float)
 
-    count_temp = np.zeros(len(self.levs),np.int)
-    count_humid = np.zeros(len(self.levs),np.int)
-    count_wind = np.zeros(len(self.levs),np.int)
+    count_temp = np.zeros(len(self.levs),int)
+    count_humid = np.zeros(len(self.levs),int)
+    count_wind = np.zeros(len(self.levs),int)
 
     rms_wind_meantot = []
     rms_temp_meantot = []
@@ -426,7 +426,6 @@ if __name__== '__main__':
                   noair=noair, aironly=aironly, latbound=latbound)
 
   for case in ['gsi', 'jedi']:
- #for case in ['old.gsi', 'jedi']:
     datapath = '%s/%s_%s' %(datadir, case, type)
     outfile = '%s_stats' %(case)
     dof.process(datapath, outfile)
