@@ -11,28 +11,9 @@
 
  set -x
 
-#module purge
-#module load intel/2020.2   impi/2020.2
-
  source ~/intelenv
 
-#rm -f fv3interp.exe
-
-#mpiicc t.c -o fv3interp.exe
-
-#srun -n 40 fv3interp.exe
-
-#rm -f fv3interp.exe
-
-#mpiifort t.F90 -o fv3interp.exe
-
-#srun -n 40 fv3interp.exe
-
-#rm -f fv3interp.exe
-
-#mpiifort tst.F90 -o fv3interp.exe
-
-#srun -n 40 fv3interp.exe
+ cd /work2/noaa/gsienkf/weihuang/production/run/transform/interp_fv3cube2gaussian
 
  time srun -n 40 fv3interp.exe
 

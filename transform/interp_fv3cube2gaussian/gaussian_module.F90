@@ -241,7 +241,7 @@ contains
 
     rc =  nf90_close(gaussian%ncid)
     call check_status(rc)
-    print *, 'Finished Write to file: ', trim(gaussian%filename)
+   !print *, 'Finished Write to file: ', trim(gaussian%filename)
 
   end subroutine finalize_gaussiangrid
 
@@ -255,7 +255,7 @@ contains
 
     integer :: ik, jk
 
-    print *, 'File: ', __FILE__, ', line: ', __LINE__
+   !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
     do jk = 1, gaussian%nlat
     do ik = 1, gaussian%nlon

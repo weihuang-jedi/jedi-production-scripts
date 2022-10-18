@@ -416,129 +416,141 @@ def get_plot_levels(var):
 
   return clevs, cblevs
 
+#=========================================================================
+class CompareFilterGSIQC():
+  def __init__(self, debug=0, output=0, gsiQCdir=None):
+    self.debug = debug
+    self.output = output
+    type = 'bfg'
+    if(gsiQCdir is None):
+      self.gsiQCdir = '/work2/noaa/gsienkf/weihuang/production/run/vis'
+    else:
+      self.gsiQCdir = gsiQCdir
+
+    self.pjgd = Plot_JEDI_GSI_Diag(debug=debug, output=output)
+
+ #-----------------------------------------------------------------------------------------
+  def process(self, prefix='all'):
+    gsiQCstatsfile = '%s/jedi_%s_stats' %(self.gsiQCdir, prefix)
+    gsiQC_stats = read_stats(gsiQCstatsfile)
+    filterfile = 'jedi_%s_stats' %(prefix)
+    filter_stats = read_stats(filterfile)
+
+   #print('gsiQC_stats = ', gsiQC_stats)
+
+    p = gsiQC_stats['p']
+   #print('len(p) = ', len(p))
+   #print('p = ', p)
+
+    for var in ['temp', 'wind', 'humid']:
+      statsname = 'rms_%s' %(var)
+      header = 'diff_%s_%s_rms_profile' %(prefix, var)
+
+      gsiQCrms = gsiQC_stats[statsname]
+      filterrms = filter_stats[statsname]
+     #print('len(gsiQCrms) = ', len(gsiQCrms))
+     #print('gsiQCrms = ', gsiQCrms)
+
+      if('humid' == var):
+        for n in range(len(filterrms)):
+          if(filterrms[n] < 0.0):
+            filterrms[n] = 0.0
+          if(gsiQCrms[n] < 0.0):
+            gsiQCrms[n] = 0.0
+
+      plot_lines(p, gsiQCrms, filterrms, header=header, output=self.output)
+
+   #-----------------------------------------------------------------------------------------
+    gsiQCfile = '%s/jedi_%s_stats.nc' %(self.gsiQCdir, prefix)
+    filterfile = 'jedi_%s_stats.nc' %(prefix)
+
+    ncgsiQC = nc4.Dataset(gsiQCfile, 'r')
+    ncfilter = nc4.Dataset(filterfile, 'r')
+
+    times = ncgsiQC.variables['times']
+    plevs = ncgsiQC.variables['plevs']
+
+   #-----------------------------------------------------------------------------------------
+    clevs = np.arange(-1.0, 1.01, 0.01)
+    cblevs = np.arange(-1.0, 1.1, 0.1)
+
+    self.pjgd.set_clevs(clevs=clevs)
+    self.pjgd.set_cblevs(cblevs=cblevs)
+
+   #-----------------------------------------------------------------------------------------
+    varlist = ['omf_rmswind', 'omf_rmstemp', 'omf_rmshumid']
+    unitlist = ['Unit (m/s)', 'Unit (C)', 'Unit (g/kg)']
+
+   #-----------------------------------------------------------------------------------------
+    for n in range(len(varlist)):
+      filtervar = ncfilter.variables[varlist[n]][:, :]
+      gsiQCvar = ncgsiQC.variables[varlist[n]][:, :]
+
+      if('omf_rmshumid' == varlist[n]):
+        filtervar = np.where(filtervar < 0.0, 0.0, 1.0e7*filtervar)
+        gsiQCvar = np.where(gsiQCvar < 0.0, 0.0, 1.0e7*gsiQCvar)
+
+      mtime, mlev = gsiQCvar.shape
+      ntime, nlev = filtervar.shape
+     #print('filtervar.shape = ', filtervar.shape)
+     #print('gsiQCvar.shape = ', gsiQCvar.shape)
+
+      ptime = mtime
+      if(mtime > ntime):
+        ptime = ntime
+
+      self.pjgd.set_label(unitlist[n])
+
+      v0 = gsiQCvar[:ptime, :].transpose()
+      v1 = filtervar[:ptime, :].transpose()
+     #v0 = gsiQCvar
+     #v1 = filtervar
+      v2 = v1 - v0
+
+      data = [v0, v1, v2]
+
+      title = varlist[n]
+      self.pjgd.set_title(title)
+
+      print('Plotting ', title)
+     #print('\tv0.shape = ', v0.shape)
+     #print('\tv1.shape = ', v1.shape)
+     #print('\tv2.shape = ', v2.shape)
+ 
+     #print('\tv0.max: %f, v0.min: %f' %(np.max(v0), np.min(v0)))
+     #print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
+     #print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
+
+      imagename = 'diff_%s_%s.png' %(prefix, varlist[n])
+      self.pjgd.set_imagename(imagename)
+
+      self.pjgd.plot_contour(times[:ptime], plevs, data=data)
+
+   #-----------------------------------------------------------------------------
+    ncfilter.close()
+    ncgsiQC.close()
+
 #--------------------------------------------------------------------------------
 if __name__== '__main__':
   debug = 1
   output = 0
   type = 'bfg'
-  gsiQCdir = '/work2/noaa/da/weihuang/jedi/case_study/vis'
-  gsiQCfile = '%s/jedi_stats.nc' %(gsiQCdir)
-  filterfile = 'jedi_stats.nc'
+  gsidir = '/work2/noaa/da/weihuang/jedi/case_study/vis'
 
-  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=', 'type=',
-                                                'filterfile=', 'gsiQCfile='])
+  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=', 'gsidir='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
     elif o in ('--output'):
       output = int(a)
-    elif o in ('--filterfile'):
-      filterfile = a
-    elif o in ('--type'):
-      type = a
-    elif o in ('--gsiQCfile'):
-      gsiQCfile = a
+    elif o in ('--gsidir'):
+      gsidir = a
     else:
       assert False, 'unhandled option'
 
 #-----------------------------------------------------------------------------------------
-  pjgd = Plot_JEDI_GSI_Diag(debug=debug, output=output)
+  cfg = CompareFilterGSIQC(debug=debug, output=output, gsiQCdir=gsidir)
 
-  gsiQCstatsfile = '%s/jedi_stats' %(gsiQCdir)
-  gsiQC_stats = read_stats(gsiQCstatsfile)
-  filter_stats = read_stats('jedi_stats')
-
-  p = gsiQC_stats['p']
-  gsiQCrms = gsiQC_stats['rms_temp']
-  filterrms = filter_stats['rms_temp']
-
- #print('len(p) = ', len(p))
- #print('p = ', p)
- #print('len(gsiQCrms) = ', len(gsiQCrms))
- #print('gsiQCrms = ', gsiQCrms)
-
-  plot_lines(p, gsiQCrms, filterrms, header='temp', output=output)
-
-  gsiQCrms = gsiQC_stats['rms_wind']
-  filterrms = filter_stats['rms_wind']
-
-  plot_lines(p, gsiQCrms, filterrms, header='wind', output=output)
-
-  gsiQCrms = gsiQC_stats['rms_humid']
-  filterrms = filter_stats['rms_humid']
-
-  for n in range(len(filterrms)):
-    if(filterrms[n] < 0.0):
-      filterrms[n] = 0.0
-    if(gsiQCrms[n] < 0.0):
-      gsiQCrms[n] = 0.0
-
-  plot_lines(p, gsiQCrms, filterrms, header='humidity', output=output)
-
-#-----------------------------------------------------------------------------------------
-  ncgsiQC = nc4.Dataset(gsiQCfile, 'r')
-  ncfilter = nc4.Dataset(filterfile, 'r')
-
-  times = ncgsiQC.variables['times']
-  plevs = ncgsiQC.variables['plevs']
-
-#-----------------------------------------------------------------------------------------
-  clevs = np.arange(-1.0, 1.01, 0.01)
-  cblevs = np.arange(-1.0, 1.1, 0.1)
-
-  pjgd.set_clevs(clevs=clevs)
-  pjgd.set_cblevs(cblevs=cblevs)
-
-#-----------------------------------------------------------------------------------------
-  varlist = ['omf_rmswind', 'omf_rmstemp', 'omf_rmshumid']
-  unitlist = ['Unit (m/s)', 'Unit (C)', 'Unit (g/kg)']
-
-#-----------------------------------------------------------------------------------------
-  for n in range(len(varlist)):
-    filtervar = ncfilter.variables[varlist[n]][:, :]
-    gsiQCvar = ncgsiQC.variables[varlist[n]][:, :]
-
-    if('omf_rmshumid' == varlist[n]):
-      filtervar = np.where(filtervar < 0.0, 0.0, 1.0e7*filtervar)
-      gsiQCvar = np.where(gsiQCvar < 0.0, 0.0, 1.0e7*gsiQCvar)
-
-    mtime, mlev = gsiQCvar.shape
-    ntime, nlev = filtervar.shape
-    print('filtervar.shape = ', filtervar.shape)
-    print('gsiQCvar.shape = ', gsiQCvar.shape)
-
-    ptime = mtime
-    if(mtime > ntime):
-      ptime = ntime
-
-    pjgd.set_label(unitlist[n])
-
-    v0 = gsiQCvar[:ptime, :].transpose()
-    v1 = filtervar[:ptime, :].transpose()
-   #v0 = gsiQCvar
-   #v1 = filtervar
-    v2 = v1 - v0
-
-    data = [v0, v1, v2]
-
-    title = varlist[n]
-    pjgd.set_title(title)
-
-    print('Plotting ', title)
-    print('\tv0.shape = ', v0.shape)
-    print('\tv1.shape = ', v1.shape)
-    print('\tv2.shape = ', v2.shape)
- 
-    print('\tv0.max: %f, v0.min: %f' %(np.max(v0), np.min(v0)))
-    print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
-    print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
-
-    imagename = 'diag_%s.png' %(varlist[n])
-    pjgd.set_imagename(imagename)
-
-    pjgd.plot_contour(times[:ptime], plevs, data=data)
-
-#-----------------------------------------------------------------------------------------
-  ncfilter.close()
-  ncgsiQC.close()
+  for prefix in ['all', 'at_6h', 'at_12h']:
+    cfg.process(prefix=prefix)
 

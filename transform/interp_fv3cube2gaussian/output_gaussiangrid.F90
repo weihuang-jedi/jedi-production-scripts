@@ -21,7 +21,7 @@ subroutine write_gaussiangrid(gaussian, flnm)
    rc = nf90_create(trim(flnm), NF90_CLOBBER, gaussian%ncid)
    call check_status(rc)
 
-   print *, 'gaussian%ncid = ', gaussian%ncid
+  !print *, 'gaussian%ncid = ', gaussian%ncid
 
    rc = nf90_def_dim(gaussian%ncid, 'lon', gaussian%nlon, gaussian%dimid_lon)
    call check_status(rc)
@@ -90,8 +90,8 @@ subroutine write_gaussiangrid(gaussian, flnm)
 
    rc =  nf90_close(gaussian%ncid)
 
-   print *, 'nf90_close rc = ', rc
-   print *, 'nf90_noerr = ', nf90_noerr
+  !print *, 'nf90_close rc = ', rc
+  !print *, 'nf90_noerr = ', nf90_noerr
 
    if(rc /= nf90_noerr) then
       write(unit=0, fmt='(a,i6,a)') "Problem to close gaussian%ncid: <", gaussian%ncid, ">."
@@ -101,7 +101,7 @@ subroutine write_gaussiangrid(gaussian, flnm)
       stop
    end if
 
-   print *, 'Finished Write to file: ', trim(flnm)
+  !print *, 'Finished Write to file: ', trim(flnm)
 
 end subroutine write_gaussiangrid
 

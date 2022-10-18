@@ -12,12 +12,11 @@ RANLIB	=       echo
 .SUFFIXES: .F90 .f90 .o .f .c .cc
 
 ####################################################
-
-#NETCDFPATH      =       /work/noaa/da/grubin/opt/modules/intel-2020/impi-2020/netcdf/4.7.4
-#HDF5PATH        =       /work/noaa/da/grubin/opt/modules/intel-2020/impi-2020/hdf5/1.12.0
-
 NETCDFPATH      =       /work/noaa/da/jedipara/opt/modules/intel-2020.2/impi-2020.2/netcdf/4.7.4
 HDF5PATH        =       /work/noaa/da/jedipara/opt/modules/intel-2020.2/impi-2020.2/hdf5/1.12.0
+
+#NETCDFPATH      =       /work/noaa/da/role-da/spack-stack/spack-stack-v1/envs/skylab-2.0.0-intel-2022.0.2/install/intel/2022.0.2/netcdf-c-4.8.1-xycuozc
+#HDF5PATH        =       /work/noaa/da/role-da/spack-stack/spack-stack-v1/envs/skylab-2.0.0-intel-2022.0.2/install/intel/2022.0.2/hdf5-1.12.1-3sndhtn
 
 ####################################################
 
@@ -37,12 +36,12 @@ FC_OPTIMIZATIONS =	-g # -O3
 FC		=       mpiifort
 FFLAGS		=       $(FC_US_FLAGS) $(FC_INCLUDES) $(FC_COMPILE_OPTIONS) $(FC_OPTIMIZATIONS) -traceback
 
-LDFLAGS		=       
+LDFLAGS		=       #-L/usr/lib64 -ltcmalloc /usr/lib64/libpsm2.so.2
 
 CPP		=       /usr/bin/cpp -C -P 
 CPPFLAGS	=	-I. $(DEBUGFLAGS)
 
-LOC_LIBS	=	$(NETCDF_LIB) $(HDF5_LIB) -lm -lc
+LOC_LIBS	=	$(NETCDF_LIB) $(HDF5_LIB) -lm -lc $(LDFLAGS)
 
 RANLIB		=	ranlib
 ####################################################

@@ -37,7 +37,7 @@ PROGRAM fv3interp
   !Find out the number of processes available.
    call MPI_Comm_size(MPI_COMM_WORLD, num_procs, ierr)
 
-   print *, 'num_procs = ', num_procs, ', myrank = ', myrank
+  !print *, 'num_procs = ', num_procs, ', myrank = ', myrank
 
    call read_namelist('input.nml')
 
@@ -46,7 +46,7 @@ PROGRAM fv3interp
       stop 111
    end if
 
-   print *, 'File: ', __FILE__, ', line: ', __LINE__
+  !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
    if(use_gaussian_grid) then
       call initialize_gaussiangrid(gaussian_grid_file, &
@@ -55,7 +55,7 @@ PROGRAM fv3interp
       call initialize_latlongrid(nlon, nlat, npnt, latlon)
    end if
 
-   print *, 'total_members = ', total_members
+  !print *, 'total_members = ', total_members
 
    mymembers = (total_members + num_procs - 1) / num_procs
 
@@ -66,9 +66,9 @@ PROGRAM fv3interp
          cycle
       end if
       write(memstr, fmt='(a, i3.3)') 'mem', member
-      print *, 'myrank: ', myrank, ', member: ', member, ', memstr: ', trim(memstr)
+     !print *, 'myrank: ', myrank, ', member: ', member, ', memstr: ', trim(memstr)
 
-      print *, 'File: ', __FILE__, ', line: ', __LINE__
+     !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
       do n = 1, num_types
          if(1 == nm) then
@@ -82,8 +82,8 @@ PROGRAM fv3interp
          else
             write(memdirname, fmt='(3a)') trim(indirname), '/', trim(memstr)
          end if
-         print *, 'memdirname: <', trim(memdirname), &
-                  '>, data_types(', n, ') = <', trim(data_types(n)), '>'
+        !print *, 'memdirname: <', trim(memdirname), &
+        !         '>, data_types(', n, ') = <', trim(data_types(n)), '>'
          call initialize_tilegrid(types(n)%tile, trim(memdirname), trim(data_types(n)))
 
          if(.not. use_gaussian_grid) then
@@ -102,13 +102,13 @@ PROGRAM fv3interp
 !        end do
 !     end if
 
-      print *, 'File: ', __FILE__, ', line: ', __LINE__
+     !print *, 'File: ', __FILE__, ', line: ', __LINE__
      !print *, 'latlon%nlev: ', latlon%nlev, ', latlon%nlay: ', latlon%nlay
-      print *, 'generate_weights = ', generate_weights
+     !print *, 'generate_weights = ', generate_weights
 
       if(generate_weights) then
-         print *, 'File: ', __FILE__, ', line: ', __LINE__
-         print *, 'use_gaussian_grid = ', use_gaussian_grid
+        !print *, 'File: ', __FILE__, ', line: ', __LINE__
+        !print *, 'use_gaussian_grid = ', use_gaussian_grid
          if(use_gaussian_grid) then
             call generate_weight4gaussian(types(1)%tile, gaussian)
             call write_gaussiangrid(gaussian, wgt_flnm)
@@ -117,8 +117,8 @@ PROGRAM fv3interp
             call write_latlongrid(latlon, wgt_flnm)
          end if
       else
-         print *, 'File: ', __FILE__, ', line: ', __LINE__
-         print *, 'wgt_flnm: ', trim(wgt_flnm)
+        !print *, 'File: ', __FILE__, ', line: ', __LINE__
+        !print *, 'wgt_flnm: ', trim(wgt_flnm)
 
          if(use_gaussian_grid) then
             call read_weights4gaussian(gaussian, wgt_flnm)
@@ -126,21 +126,22 @@ PROGRAM fv3interp
             call read_weights(latlon, wgt_flnm)
          end if
 
-         print *, 'File: ', __FILE__, ', line: ', __LINE__
-         print *, 'num_types: ', num_types
+        !print *, 'File: ', __FILE__, ', line: ', __LINE__
+        !print *, 'num_types: ', num_types
 
          do n = 1, num_types
             last = (n == num_types)
-            print *, 'n = ', n
-            print *, 'last = ', last
+           !print *, 'n = ', n
+           !print *, 'last = ', last
             
             if(1 == total_members) then
                write(outfullname, fmt='(3a)') trim(outdirname), '/', trim(output_flnm)
             else
                write(outfullname, fmt='(5a)') trim(outdirname), '/', trim(memstr), &
-                                              '/', trim(output_flnm)
-              !                               '/INPUT/', trim(output_flnm)
+                                              '/INPUT/', trim(output_flnm)
+              !                               '/', trim(output_flnm)
             end if
+            print *, 'myrank: ', myrank, ', outfullname: ', trim(outfullname)
             if(use_gaussian_grid) then
                call generate_header4gaussian(n, types(n)%tile, gaussian, &
                                        trim(data_types(n)), outfullname, last)
@@ -156,19 +157,19 @@ PROGRAM fv3interp
       end if
    end do
 
-   print *, 'File: ', __FILE__, ', line: ', __LINE__
+  !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
 !  do n = 1, 6
 !     call grid_utils_exit(gridstruct(n))
 !  end do
 
-   print *, 'File: ', __FILE__, ', line: ', __LINE__
+  !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
    do n = 1, num_types
       call finalize_tilegrid(types(n)%tile)
    end do
 
-   print *, 'File: ', __FILE__, ', line: ', __LINE__
+  !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
    if(use_gaussian_grid) then
       call finalize_gaussiangrid(gaussian)
@@ -176,7 +177,7 @@ PROGRAM fv3interp
       call finalize_latlongrid(latlon)
    end if
 
-   print *, 'File: ', __FILE__, ', line: ', __LINE__
+  !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
   !End MPI
    call MPI_Finalize(ierr)

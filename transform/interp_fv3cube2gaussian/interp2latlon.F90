@@ -15,10 +15,10 @@ subroutine generate_header(k, tile, latlon, gridtype, flnm, last)
 
    integer :: rc
 
-   print *, 'Enter generate_header'
-   print *, 'k = ', k
-   print *, 'gridtype = ', trim(gridtype)
-   print *, 'flnm = ', trim(flnm)
+  !print *, 'Enter generate_header'
+  !print *, 'k = ', k
+  !print *, 'gridtype = ', trim(gridtype)
+  !print *, 'flnm = ', trim(flnm)
   
    if(k == 1) then
       call create_coord(tile(1)%nt, tile(1)%time(1:tile(1)%nt), latlon, flnm)
@@ -36,7 +36,7 @@ subroutine generate_header(k, tile, latlon, gridtype, flnm, last)
       call create_phy_data_var_attr(tile, latlon)
    end if
 
-   print *, 'last = ', last
+  !print *, 'last = ', last
 
    if(last) then
      !End define mode.
@@ -50,7 +50,7 @@ subroutine generate_header(k, tile, latlon, gridtype, flnm, last)
       end if
    end if
 
-   print *, 'Leave generate_header'
+  !print *, 'Leave generate_header'
 
 end subroutine generate_header
 
@@ -290,8 +290,8 @@ subroutine create_fv_core_var_attr(tile, latlon)
    real    :: missing_real
    character(len=80) :: long_name, units, coordinates, outname
 
-   print *, 'Enter create_fv_core_var_attr'
-   print *, 'File: ', __FILE__, ', line: ', __LINE__
+  !print *, 'Enter create_fv_core_var_attr'
+  !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
    missing_real = -1.0e38
    missing_int = -999999
@@ -318,8 +318,8 @@ subroutine create_fv_core_var_attr(tile, latlon)
      !nd = 4
       nd = 3
 
-      print *, 'File: ', __FILE__, ', line: ', __LINE__
-      print *, 'Var No ', i, ' name: ', trim(tile(1)%vars(i)%varname)
+     !print *, 'File: ', __FILE__, ', line: ', __LINE__
+     !print *, 'Var No ', i, ' name: ', trim(tile(1)%vars(i)%varname)
 
       outname = trim(tile(1)%vars(i)%varname)
       long_name = trim(tile(1)%vars(i)%varname)
@@ -360,8 +360,8 @@ subroutine create_fv_core_var_attr(tile, latlon)
          end if
       end if
 
-      print *, 'File: ', __FILE__, ', line: ', __LINE__
-      print *, 'outname: ', trim(outname)
+     !print *, 'File: ', __FILE__, ', line: ', __LINE__
+     !print *, 'outname: ', trim(outname)
 
       call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL, &
                       trim(outname), &
@@ -369,7 +369,7 @@ subroutine create_fv_core_var_attr(tile, latlon)
                       trim(coordinates), missing_real)
    end do
 
-   print *, 'Leave create_fv_core_var_attr'
+  !print *, 'Leave create_fv_core_var_attr'
 
 end subroutine create_fv_core_var_attr
 
@@ -665,7 +665,7 @@ subroutine process_fv_core(spec, tile, gridstruct, latlon)
    real, dimension(:,:,:), allocatable :: var2d
    real, dimension(:,:,:), allocatable :: var3d, u
 
-   print *, 'Enter process_fv_core'
+  !print *, 'Enter process_fv_core'
 
    allocate(var2d(latlon%nlon, latlon%nlat, 1))
    allocate(var3d(latlon%nlon, latlon%nlat, latlon%nlev))
@@ -687,7 +687,7 @@ subroutine process_fv_core(spec, tile, gridstruct, latlon)
                name=tile(1)%vars(i)%varname)
       call check_status(rc)
 
-      print *, 'Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
+     !print *, 'Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
      !print *, 'Var No. ', i, ': varid: ', tile(1)%varids(i)
 
       if(tile(1)%vars(i)%nDims < 2) cycle
@@ -717,8 +717,8 @@ subroutine process_fv_core(spec, tile, gridstruct, latlon)
          end if
       end do
 
-      print *, 'P 2, Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
-      print *, 'File: ', __FILE__, ', at line: ', __LINE__
+     !print *, 'P 2, Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
+     !print *, 'File: ', __FILE__, ', at line: ', __LINE__
 
       if((trim(tile(1)%vars(i)%varname) == 'ps') .or. &
          (trim(tile(1)%vars(i)%varname) == 'phis')) then

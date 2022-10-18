@@ -15,10 +15,10 @@ subroutine generate_header4gaussian(k, tile, gaussian, gridtype, flnm, last)
 
    integer :: rc
 
-   print *, 'Enter generate_header4gaussian'
-   print *, 'k = ', k
-   print *, 'gridtype = ', trim(gridtype)
-   print *, 'flnm = ', trim(flnm)
+  !print *, 'Enter generate_header4gaussian'
+  !print *, 'k = ', k
+  !print *, 'gridtype = ', trim(gridtype)
+  !print *, 'flnm = ', trim(flnm)
   
    if(k == 1) then
       call create_coord4gaussian(tile(1)%nt, tile(1)%time(1:tile(1)%nt), gaussian, flnm)
@@ -30,7 +30,7 @@ subroutine generate_header4gaussian(k, tile, gaussian, gridtype, flnm, last)
       call create_fv_tracer_var_attr4gaussian(tile, gaussian)
    end if
 
-   print *, 'last = ', last
+  !print *, 'last = ', last
 
    if(last) then
      !End define mode.
@@ -44,7 +44,7 @@ subroutine generate_header4gaussian(k, tile, gaussian, gridtype, flnm, last)
       end if
    end if
 
-   print *, 'Leave generate_header4gaussian'
+  !print *, 'Leave generate_header4gaussian'
 
 end subroutine generate_header4gaussian
 
@@ -64,8 +64,8 @@ subroutine interp2gaussiangrid(gridtype, spec, gridstruct, tile, gaussian)
    type(tilegrid), dimension(6),      intent(inout) :: tile
    type(gaussiangrid),                intent(inout) :: gaussian
 
-   print *, 'Enter interp2gaussiangrid'
-   print *, 'gridtype = ', trim(gridtype)
+  !print *, 'Enter interp2gaussiangrid'
+  !print *, 'gridtype = ', trim(gridtype)
 
    if('fv_core.res.tile' == trim(gridtype)) then
       call process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
@@ -114,9 +114,9 @@ subroutine create_coord4gaussian(nt, time, gaussian, flnm)
 
    missing_real = -1.0e38
 
-   print *, 'Enter create_coord4gaussian'
-   print *, 'flnm = ', trim(flnm)
-   print *, 'nt = ', nt
+  !print *, 'Enter create_coord4gaussian'
+  !print *, 'flnm = ', trim(flnm)
+  !print *, 'nt = ', nt
   !print *, 'time(1:nt) = ', time(1:nt)
 
   !print *, 'gaussian%nlon = ',  gaussian%nlon
@@ -146,7 +146,7 @@ subroutine create_coord4gaussian(nt, time, gaussian, flnm)
    call check_status(rc)
 
    gaussian%ncid = ncid
-   print *, 'ncid = ', ncid
+  !print *, 'ncid = ', ncid
 
    rc = nf90_def_dim(ncid, 'lon', gaussian%nlon, gaussian%dimid_lon)
    call check_status(rc)
@@ -257,8 +257,8 @@ subroutine create_fv_core_var_attr4gaussian(tile, gaussian)
    real    :: missing_real
    character(len=80) :: long_name, units, coordinates, outname
 
-   print *, 'Enter create_fv_core_var_attr4gaussian'
-   print *, 'File: ', __FILE__, ', line: ', __LINE__
+  !print *, 'Enter create_fv_core_var_attr4gaussian'
+  !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
    missing_real = -1.0e38
    missing_int = -999999
@@ -302,9 +302,9 @@ subroutine create_fv_core_var_attr4gaussian(tile, gaussian)
          cycle
       end if
 
-      print *, 'File: ', __FILE__, ', line: ', __LINE__
-      print *, 'outname: ', trim(outname)
-      print *, 'long_name: ', trim(long_name)
+     !print *, 'File: ', __FILE__, ', line: ', __LINE__
+     !print *, 'outname: ', trim(outname)
+     !print *, 'long_name: ', trim(long_name)
 
       call nc_putAttr(gaussian%ncid, nd, dimids, NF90_REAL, &
                       trim(outname), &
@@ -312,7 +312,7 @@ subroutine create_fv_core_var_attr4gaussian(tile, gaussian)
                       trim(coordinates), missing_real)
    end do
 
-   print *, 'Leave create_fv_core_var_attr4gaussian'
+  !print *, 'Leave create_fv_core_var_attr4gaussian'
 
 end subroutine create_fv_core_var_attr4gaussian
 
@@ -411,8 +411,8 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
    real, dimension(:,:,:), allocatable :: var3d, u
    character(len=80) :: outname
 
-   print *, 'Enter process_fv_core4gaussian'
-   print *, 'File: ', __FILE__, ', line: ', __LINE__
+  !print *, 'Enter process_fv_core4gaussian'
+  !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
    allocate(var3d(gaussian%nlon, gaussian%nlat, gaussian%nlev))
    allocate(u(gaussian%nlon, gaussian%nlat, gaussian%nlev))
@@ -430,13 +430,13 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
                name=tile(1)%vars(i)%varname)
       call check_status(rc)
 
-      print *, 'File: ', __FILE__, ', line: ', __LINE__
-      print *, 'Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
+     !print *, 'File: ', __FILE__, ', line: ', __LINE__
+     !print *, 'Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
      !print *, 'Var No. ', i, ': varid: ', tile(1)%varids(i)
 
       if(tile(1)%vars(i)%nDims < 2) cycle
 
-      print *, 'P 1, Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
+     !print *, 'P 1, Var No. ', i, ': name: ', trim(tile(1)%vars(i)%varname)
 
       if((trim(tile(1)%vars(i)%varname) == 'delp') .or. &
          (trim(tile(1)%vars(i)%varname) == 'DZ') .or. &
@@ -455,7 +455,7 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
          cycle
       end if
 
-      print *, 'File: ', __FILE__, ', line: ', __LINE__
+     !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
       if(trim(tile(1)%vars(i)%varname) == 'T') then
          outname = 'T_inc'
@@ -469,7 +469,7 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
          outname = 'v_inc'
       end if
 
-      print *, 'File: ', __FILE__, ', line: ', __LINE__
+     !print *, 'File: ', __FILE__, ', line: ', __LINE__
 
       call interp3dvar4gaussian(tile, gaussian, var3d)
       call nc_put3Dvar0(gaussian%ncid, trim(outname), &
@@ -479,7 +479,7 @@ subroutine process_fv_core4gaussian(spec, tile, gridstruct, gaussian)
    deallocate(var3d)
    deallocate(u)
 
-   print *, 'Leave process_fv_core4gaussian'
+  !print *, 'Leave process_fv_core4gaussian'
 
 end subroutine process_fv_core4gaussian
 

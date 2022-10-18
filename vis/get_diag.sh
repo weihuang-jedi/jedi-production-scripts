@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#set -x
+ set -x
 
  plot_stats () {
    argnum=$#
-   if [ $argnum -lt 3 ]
+   if [ $argnum -lt 4 ]
    then
-     echo "Usage: $0 sdate edate interval, for example: $0 2020010112 2020010812 12"
+     echo "Usage: $0 sdate edate interval, for example: $0 2020010112 2020010812 12 all"
      exit -1
    fi
 
