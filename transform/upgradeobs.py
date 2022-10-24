@@ -61,7 +61,7 @@ def replace_var(comm, infile, outfile, grplist):
     for varname, variable in group.variables.items():
       ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions)
      #copy variable attributes all at once via dictionary
-      ncoutgroup[name].setncatts(group[name].__dict__)
+     #ncoutgroup[name].setncatts(group[name].__dict__)
       if(name in grplist):
         val = group[varname][:]
         avg = mpi_average(comm, val)
@@ -89,12 +89,12 @@ opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'run_dir=',
 for o, a in opts:
   if o in ('--debug'):
     debug = int(a)
-  elif o in ('--gsi_file'):
-    gsi_file = a
-  elif o in ('--jedifile'):
-    jedifile = a
-  elif o in ('--newgsifl'):
-    newgsifl = a
+  elif o in ('--run_dir'):
+    run_dir = a
+  elif o in ('--datestr'):
+    datestr = a
+  elif o in ('--varname'):
+    varname = a
   else:
     assert False, 'unhandled option'
 

@@ -44,7 +44,9 @@
      rm -f $ofile
 
      ifiles=`ls ${indir}/mem*/${type}.tile${tile}.nc`
-     cdo ensmean $ifiles $ofile
+     cdo ensmean $ifiles $ofile &
    done
  done
+
+ wait
 

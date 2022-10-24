@@ -17,7 +17,7 @@
       obsdataout:
         engine:
           type: H5File
-          obsfile: observer/sondes_tsen_obs_YYYYMMDDHH.nc4
+          obsfile: obsout/sondes_tsen_obs_YYYYMMDDHH.nc4
       simulated variables: [air_temperature]
     obs operator:
       name: VertInterp
@@ -78,7 +78,7 @@
       obsdataout:
         engine:
           type: H5File
-          obsfile: observer/sondes_tv_obs_YYYYMMDDHH.nc4
+          obsfile: obsout/sondes_tv_obs_YYYYMMDDHH.nc4
       simulated variables: [virtual_temperature]
     obs operator:
       name: VertInterp
@@ -166,7 +166,7 @@
       obsdataout:
         engine:
           type: H5File
-          obsfile: observer/sondes_uv_obs_YYYYMMDDHH.nc4
+          obsfile: obsout/sondes_uv_obs_YYYYMMDDHH.nc4
       simulated variables: [eastward_wind, northward_wind]
     obs operator:
       name: VertInterp
@@ -293,7 +293,7 @@
       obsdataout:
         engine:
           type: H5File
-          obsfile: observer/sondes_q_obs_YYYYMMDDHH.nc4
+          obsfile: obsout/sondes_q_obs_YYYYMMDDHH.nc4
       simulated variables: [specific_humidity]
     obs operator:
       name: VertInterp
