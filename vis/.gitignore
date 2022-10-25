@@ -6,3 +6,5 @@ input.nml
 log.*
 *.csv
 *.png
+*.nc
+*.nc4

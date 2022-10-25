@@ -20,10 +20,18 @@
 
  if [ ! -f ${outdir}/coupler.res ]
  then
-   cp ${indir}/mem001/coupler.res ${outdir}/.
-   cp ${indir}/mem001/grid_spec.nc ${outdir}/.
-   cp ${indir}/mem001/atm_stoch.res.nc ${outdir}/.
-   cp ${indir}/mem001/C96_grid.tile*.nc ${outdir}/.
+   for fl in coupler.res grid_spec.nc atm_stoch.res.nc
+   do
+     if [ -f ${indir}/mem001/$fl ]
+     then
+       cp ${indir}/mem001/$fl ${outdir}/.
+     fi
+   done
+
+   if [ -f ${indir}/mem001/C96_grid.tile1.nc ]
+   then
+     cp ${indir}/mem001/C96_grid.tile*.nc ${outdir}/.
+   fi
  fi
 
  typelist=(fv_core.res fv_srf_wnd.res fv_tracer.res oro_data phy_data sfc_data)

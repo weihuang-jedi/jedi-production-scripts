@@ -20,8 +20,8 @@
 
 #export blddir=/work/noaa/gsienkf/weihuang/jedi/src/my.compile
 #export blddir=/work2/noaa/gsienkf/weihuang/jedi/compile_intel
-#export blddir=/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/build
- export blddir=/work2/noaa/gsienkf/weihuang/production/build/fv3-bundle
+ export blddir=/work2/noaa/gsienkf/weihuang/jedi/per_core_timing/build
+#export blddir=/work2/noaa/gsienkf/weihuang/production/build/fv3-bundle
  export LD_LIBRARY_PATH=${blddir}/lib:$LD_LIBRARY_PATH
  executable=$blddir/bin/fv3jedi_letkf.x
 
@@ -46,7 +46,7 @@
  while [ $n -lt $number_members ]
  do
    used_nodes=0
-   while [ $used_nodes -le $NODES ] && [ $n -lt $number_members ]
+   while [ $used_nodes -lt $NODES ] && [ $n -le $number_members ]
    do
       used_nodes=$(( $used_nodes + 1 ))
 
@@ -64,10 +64,10 @@
       mkdir -p obsout/${member_str}
 
 sed -e "s?MEMSTR?${member_str}?g" \
-    getkf.yaml.observer.template > obsout/getkf.yaml.oberver.${member_str}
+    getkf.yaml.observer.template > obsout/getkf.yaml.observer.${member_str}
 
 #srun -N 1 --ntasks=36 --ntasks-per-node=36 --ntasks-per-socket=18 ${executable} analysis/getkf.yaml.${member_str} >& obsout/log.${member_str} &
-srun -N 1 -n 36 ${executable} obsout/getkf.yaml.${member_str} >& obsout/log.${member_str} &
+srun -N 1 -n 36 ${executable} obsout/getkf.yaml.observer.${member_str} >& obsout/log.${member_str} &
       n=$(( $n + 1 ))
    done
    wait
@@ -80,7 +80,7 @@ srun -N 1 -n 36 ${executable} obsout/getkf.yaml.${member_str} >& obsout/log.${me
  while [ $n -lt $number_members ]
  do
    used_nodes=0
-   while [ $used_nodes -le $NODES ] && [ $n -lt $number_members ]
+   while [ $used_nodes -lt $NODES ] && [ $n -le $number_members ]
    do
       used_nodes=$(( $used_nodes + 1 ))
 
@@ -97,9 +97,9 @@ srun -N 1 -n 36 ${executable} obsout/getkf.yaml.${member_str} >& obsout/log.${me
       mkdir -p solver/${member_str}
 
 sed -e "s?MEMSTR?${member_str}?g" \
-    getkf.yaml.solver.template > analysis/getkf.yaml.solver.${member_str}
+    getkf.yaml.solver.template > solver/getkf.yaml.solver.${member_str}
 
-srun -N 1 -n 36 ${executable} analysis/getkf.yaml.${member_str} >& analysis/log.${member_str} &
+srun -N 1 -n 36 ${executable} solver/getkf.yaml.${member_str} >& solver/log.${member_str} &
       n=$(( $n + 1 ))
    done
    wait
