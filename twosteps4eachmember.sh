@@ -53,7 +53,7 @@
      -e "s?DATETIME?${datetime}?g" \
      ${templatedir}/getkf.yaml.template.1_member.solver > getkf.yaml.solver.template
 
- sed -e "s?YYYYMMDDHH?${yyyymmddhh}_0000?g" \
+ sed -e "s?YYYYMMDDHH?${yyyymmddhh}?g" \
      ${templatedir}/${casename}.obs.yaml.template.solver >> getkf.yaml.solver.template
 
  sbatch run.slurm
