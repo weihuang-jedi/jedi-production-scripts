@@ -16,7 +16,9 @@
 
  SYMDH=${SYEAR}${SMONTH}${SDAY}${SHOUR}
 
- src_dir=/work2/noaa/gsienkf/weihuang/gsi/C96_lgetkf_sondesonly/${SYMDH}
+ top_dir=/work2/noaa/gsienkf/weihuang/gsi/old.gsi_C96_lgetkf_sondesonly
+#src_dir=/work2/noaa/gsienkf/weihuang/gsi/C96_lgetkf_sondesonly/${SYMDH}
+ src_dir=${top_dir}/${SYMDH}
  tar_dir=/work2/noaa/gsienkf/weihuang/production/run/Data/ens
 
  mkdir -p ${tar_dir}
