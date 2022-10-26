@@ -10,9 +10,9 @@ import numpy as np
 def average(vlist):
   buf = np.zeros_like(vlist[0])
   nmem = len(vlist)
-  for n in range(1, nmem):
-    buf += vlist[n]
-  buf /= (nmem-1)
+  for val in vlist:
+    buf += val
+  buf /= nmem
   return buf
 
 #-----------------------------------------------------------------------------------------
@@ -26,44 +26,29 @@ def copy_dimension(ncin, ncout):
       ncout.createDimension(name, len(dimension))
 
 #-----------------------------------------------------------------------------------------
-def copy_attributes(ncin, ncout):
- #copy the global attributes to the new file
-  inattrs = ncin.ncattrs()
-  for attr in inattrs:
-    if('_FillValue' != attr):
-      ncout.setncattr(attr, ncin.getncattr(attr))
-
-#-----------------------------------------------------------------------------------------
 def copy_rootvar(ncin, ncout):
  #copy all var in root group.
   for name, variable in ncin.variables.items():
     ncout.createVariable(name, variable.datatype, variable.dimensions)
-   #copy variable attributes all at once via dictionary
-    ncout[name].setncatts(ncin[name].__dict__)
     ncout[name][:] = ncin[name][:]
+   #copy variable attributes all at once via dictionary
+   #ncout[name].setncatts(ncin[name].__dict__)
 
 #-----------------------------------------------------------------------------------------
 def copy_var_in_group(ncingroup, ncoutgroup):
-  fvname = '_FillValue'
  #copy all var in group.
   for varname, variable in ncingroup.variables.items():
-    if(fvname in variable.__dict__):
-      fill_value = variable.getncattr(fvname)
-      newvar = ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions, fill_value=fill_value)
-    else:
-      newvar = ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions)
-    copy_attributes(variable, newvar)
-   #newvar.setncatts(ncingroup[varname].__dict__)
-    newvar[:] = ncingroup[varname][:]
+    ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions)
+   #copy variable attributes all at once via dictionary
    #ncoutgroup[varname].setncatts(ncingroup[varname].__dict__)
-   #ncoutgroup[varname][:] = ncingroup[varname][:]
+    ncoutgroup[varname][:] = ncingroup[varname][:]
 
 #-----------------------------------------------------------------------------------------
 def copy_grp2newname(name, n, group, ncout):
   item = name.split('_')
   item[-1] = '%d' %(n+1)
   newname = '_'.join(item)
- #print('No %d name: %s, newname: %s' %(n+1, name, newname))
+  print('No %d name: %s, newname: %s' %(n+1, name, newname))
   ncoutgroup = ncout.createGroup(newname)
   copy_var_in_group(group, ncoutgroup)
 
@@ -80,64 +65,56 @@ def process(ncinlist, ncout, grplist):
    #print('group: ', group)
     namelist.append(name)
     if(name in grplist):
+     #print('0. name: ', name)
       ensvarinfo[name] = {}
-      group = ncin.groups[name]
-      if(name == 'hofx0_1'):
-        for varname, variable in group.variables.items():
-          val = group[varname][:]
-          ensvarinfo[name][varname] = []
-          ensvarinfo[name][varname].append(val)
-      else:
-        if(name == 'hofx_y_mean_xb0'):
-          ncoutgroup = ncout.createGroup(name)
-          copy_var_in_group(group, ncoutgroup)
-        for varname, variable in group.variables.items():
-          val = group[varname][:]
-          ensvarinfo[name][varname] = val
     else:
       if(name.find('hofx') < 0):
+       #print('1. name: ', name)
         commongrps.append(name)
         ncoutgroup = ncout.createGroup(name)
         copy_var_in_group(group, ncoutgroup)
       else:
+       #print('2. name: ', name)
         hofxgrps.append(name)
 
   print('len(namelist) = %d, len(commongrps) = %d, len(hofxgrps) = %d' %(len(namelist), len(commongrps), len(hofxgrps)))
 
-  grpname = 'hofx0_1'
-  for n in range(1, len(ncinlist)):
+  for n in range(len(ncinlist)):
     ncin = ncinlist[n]
     for name in hofxgrps:
       group = ncin.groups[name]
       copy_grp2newname(name, n, group, ncout)
-    group = ncin.groups[grpname]
-    copy_grp2newname(grpname, n, group, ncout)
-    for varname, variable in group.variables.items():
-      val = group[varname][:]
-      if(n == 0):
-        ensvarinfo[name][varname] = []
-      ensvarinfo[name][varname].append(val)
+    for name in grplist:
+      group = ncin.groups[name]
+      if(name == 'hofx0_1'):
+        copy_grp2newname(name, n, group, ncout)
+      for varname, variable in group.variables.items():
+        val = group[varname][:]
+        if(n == 0):
+          ensvarinfo[name][varname] = []
+        ensvarinfo[name][varname].append(val)
 
   varlist = ensvarinfo['hofx0_1'].keys()
- #print('varlist = ', varlist)
+  print('varlist = ', varlist)
   meanvars = {}
-  ncoutgroup = ncout.createGroup(grpname)
-  for varname in varlist:
-    meanval = average(ensvarinfo[grpname][varname])
-    print('varname = ', varname)
-    print('meanval.shape = ', meanval.shape)
-    print('meanval.size = ', meanval.size)
-    meanvars[varname] = meanval
+  for grpname in grplist:
+    meanvars[grpname] = {}
+    ncoutgroup = ncout.createGroup(grpname)
+    for varname in varlist:
+      meanval = average(ensvarinfo[grpname][varname])
+      print('meanval.shape = ', meanval.shape)
+      print('meanval.size = ', meanval.size)
+      meanvars[grpname][varname] = meanval
 
   for grpname in grplist:
     if(grpname != 'hofx0_1'):
       print('Finally processing: ', grpname)
       ncingroup = ncinlist[0].groups[grpname]
       ncoutgroup = ncout.createGroup(grpname)
-     #copy variable attributes all at once via dictionary
-     #ncoutgroup[name].setncatts(ncingroup[name].__dict__)
       for varname, variable in ncingroup.variables.items():
         ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions)
+       #copy variable attributes all at once via dictionary
+       #ncoutgroup[name].setncatts(ncingroup[name].__dict__)
         if(grpname == 'ombg'):
           val = meanval + meanvars['hofx_y_mean_xb0'][varname] - meanvars['hofx0_1'][varname]
           ncoutgroup[varname][:] = val
@@ -169,10 +146,6 @@ def replace_var(filelist, outfile, grplist):
   ncout.source='JEDI observer only ouptut, each with only one member'
   ncout.comment = 'updated variable hofx_y_mean_xb0 and ombg from all observer files'
 
- #copy attributes
-  for name in ncinlist[0].ncattrs():
-    ncout.setncattr(name, ncinlist[0].getncattr(name))
-
   copy_dimension(ncinlist[0], ncout)
   copy_rootvar(ncinlist[0], ncout)
 
@@ -184,7 +157,7 @@ def replace_var(filelist, outfile, grplist):
 
 #-----------------------------------------------------------------------------------------
 debug = 1
-nmem = 81
+nmem = 80
 
 run_dir = '/work2/noaa/gsienkf/weihuang/production/run/sondes/run_81.36t9n'
 datestr = '2020010112'
@@ -211,7 +184,7 @@ for o, a in opts:
 grplist = ['hofx_y_mean_xb0', 'hofx0_1', 'ombg']
 filelist = []
 for n in range(nmem):
-  flnm = '%s/observer/mem%3.3d/%s_obs_%s_0000.nc4' %(run_dir, n, varname, datestr)
+  flnm = '%s/observer/mem%3.3d/%s_obs_%s_0000.nc4' %(run_dir, n+1, varname, datestr)
   filelist.append(flnm)
 outfile = '%s/observer/%s_obs_%s_0000.nc4' %(run_dir, varname, datestr)
 

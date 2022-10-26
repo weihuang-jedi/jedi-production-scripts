@@ -17,6 +17,14 @@ def mpi_average(comm, x):
   return buf
 
 #-----------------------------------------------------------------------------------------
+def copy_attributes(ncin, ncout):
+ #copy the global attributes to the new file
+  inattrs = ncin.ncattrs()
+  for attr in inattrs:
+    if('_FillValue' != attr):
+      ncout.setncattr(attr, ncin.getncattr(attr))
+
+#-----------------------------------------------------------------------------------------
 def replace_var(comm, infile, outfile, grplist):
   if(os.path.exists(infile)):
     print('infile: ', infile)
@@ -52,22 +60,29 @@ def replace_var(comm, infile, outfile, grplist):
    #copy variable attributes all at once via dictionary
    #ncout[name].setncatts(ncin[name].__dict__)
 
+  fvname = '_FillValue'
  #check groups
   for name, group in ncin.groups.items():
-    print('name: ', name)
-    print('group: ', group)
+   #print('name: ', name)
+   #print('group: ', group)
     ncoutgroup = ncout.createGroup(name)
    #copy all var in group.
     for varname, variable in group.variables.items():
-      ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions)
-     #copy variable attributes all at once via dictionary
+      if(fvname in variable.__dict__):
+        fill_value = variable.getncattr(fvname)
+        newvar = ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions, fill_value=fill_value)
+      else:
+        newvar = ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions)
+      copy_attributes(variable, newvar)
      #ncoutgroup[name].setncatts(group[name].__dict__)
       if(name in grplist):
         val = group[varname][:]
         avg = mpi_average(comm, val)
-        ncoutgroup[varname][:] = avg[:]
+       #ncoutgroup[varname][:] = avg[:]
+        newvar[:] = avg[:]
       else:
-        ncoutgroup[varname][:] = group[varname][:]
+       #ncoutgroup[varname][:] = group[varname][:]
+        newvar[:] = group[varname][:]
 
   ncin.close()
   ncout.close()
