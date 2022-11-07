@@ -194,8 +194,18 @@ def get_plot_levels(var):
 if __name__== '__main__':
   debug = 1
   output = 0
-  frtdir = '/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_JEDI_full_run/run_80.36t1n_36p/analysis/increment'
-  snddir = '/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_RR_develop/run_80.36t1n_36p/analysis/increment'
+ #frtdir = '/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_JEDI_full_run/run_80.36t1n_36p/analysis/increment'
+ #snddir = '/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_RR_develop/run_80.36t1n_36p/analysis/increment'
+  topdir = '/work2/noaa/gsienkf/weihuang/production/run/sondes'
+  memdir = 'analysis/increment/mem001'
+  frtdir = '%s/run_80.40t1n_36p/%s' %(topdir, memdir)
+  snddir = '%s/run_81.36t9n/%s' %(topdir, memdir)
+ #frtdir = '%s/1_rr_observer_whole_solver.run_81.36t9n/%s' %(topdir, memdir)
+ #snddir = '%s/1_rr_observer_whole_solver.run_81.36t9n/%s' %(topdir, memdir)
+ #snddir = '%s/1_rr_observer_ens_solver.run_81.36t9n/%s' %(topdir, memdir)
+
+  frtfile = '%s/getkf.increment.20200101_120000z.nc4' %(frtdir)
+  sndfile = '%s/getkf.increment.20200101_120000z.nc4' %(snddir)
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
                                                 'sndfile=', 'frtfile='])
@@ -214,9 +224,6 @@ if __name__== '__main__':
 #-----------------------------------------------------------------------------------------
   gp = GeneratePlot(debug=debug, output=output)
 
-  frtfile = '%s/interp2gaussian_grid.nc4' %(frtdir)
-  sndfile = '%s/interp2gaussian_grid.nc4' %(snddir)
-
   ncfrt = nc4.Dataset(frtfile, 'r')
   ncsnd = nc4.Dataset(sndfile, 'r')
 
@@ -234,24 +241,27 @@ if __name__== '__main__':
  #varlist = ['tmp', 'ugrd', 'vgrd', 'delp', 'spfh', 'o3mr', 'delz']
  #unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)', 'Unit (Pa)',
  #            'Unit (kg/kg)', 'Unit (ppm)', 'Unit (m)']
-  varlist = ['T_inc', 'delp_inc', 'sphum_inc', 'o3mr_inc', 'delz_inc']
+ #varlist = ['T_inc', 'delp_inc', 'sphum_inc', 'o3mr_inc', 'delz_inc']
+  varlist = ['T', 'delp', 'sphum', 'o3mr', 'DZ', 'ua', 'va']
   unitlist = ['Unit (C)', 'Unit (Pa)',
-              'Unit (kg/kg)', 'Unit (kg/kg)', 'Unit (m)']
+              'Unit (kg/kg)', 'Unit (kg/kg)', 'Unit (m)', 'Unit (m/s)', 'Unit (m/s)']
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(varlist)):
-    sndvar = ncsnd.variables[varlist[n]][:, :, :]
-    frtvar = ncfrt.variables[varlist[n]][:, :, :]
+    sndvar = ncsnd.variables[varlist[n]][0,:, :, :]
+    frtvar = ncfrt.variables[varlist[n]][0,:, :, :]
 
-    nlev, nlat, nlon = sndvar.shape
-   #print('sndvar.shape = ', sndvar.shape)
+    print('sndvar.shape = ', sndvar.shape)
    #print('frtvar.shape = ', frtvar.shape)
+    nlev, nlat, nlon = sndvar.shape
 
     gp.set_label(unitlist[n])
 
     for lev in range(5, nlev, 10):
       v0 = frtvar[lev,:,:]
+      v0 = np.where(np.isnan(v0), 0.0, v0)
       v1 = sndvar[lev,:,:]
+      v1 = np.where(np.isnan(v1), 0.0, v1)
       v2 = v1 - v0
 
       data = [v0, v1, v2]

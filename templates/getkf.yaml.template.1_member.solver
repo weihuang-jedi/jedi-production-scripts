@@ -69,10 +69,10 @@ local ensemble DA:
 #  filename_cplr: coupler.res
 #  first: PT0H
 #  frequency: PT1H
-output:
-  filetype: auxgrid
-  gridtype: gaussian
-  filename: analysis/mean/mean.
+#output:
+#  filetype: auxgrid
+#  gridtype: gaussian
+#  filename: analysis/mean/mean.
 
 #output increment:
 #  filetype: fms restart
@@ -84,25 +84,25 @@ output:
 #  filename_cplr: coupler.res
 #  first: PT0H
 #  frequency: PT1H
-output increment:
-  filetype: auxgrid
-  gridtype: gaussian
-  filename: analysis/increment/xainc.
+#output increment:
+#  filetype: auxgrid
+#  gridtype: gaussian
+#  filename: analysis/increment/xainc.
 
 # for realistic output, use gfs filetype for output
 # here we are using latlon for ease of visualisation
-output ensemble increments:
-  filetype: fms restart
-  datapath: analysis/increment/MEMSTR
-  filename_core: fv_core.res.nc
-  filename_trcr: fv_tracer.res.nc
-  filename_sfcd: sfc_data.nc
-  filename_sfcw: fv_srf_wnd.res.nc
-  filename_cplr: coupler.res
 #output ensemble increments:
-#  filetype: auxgrid
-#  gridtype: gaussian
-#  filename: analysis/mem%{member}%/getkf.increment.
+#  filetype: fms restart
+#  datapath: analysis/increment/MEMSTR
+#  filename_core: fv_core.res.nc
+#  filename_trcr: fv_tracer.res.nc
+#  filename_sfcd: sfc_data.nc
+#  filename_sfcw: fv_srf_wnd.res.nc
+#  filename_cplr: coupler.res
+output ensemble increments:
+  filetype: auxgrid
+  gridtype: gaussian
+  filename: analysis/increment/mem%{member}%/getkf.increment.
 
 # Observing system
 # ----------------

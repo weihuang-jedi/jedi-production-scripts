@@ -99,7 +99,7 @@ srun -N 1 -n 36 ${executable} obsout/getkf.yaml.observer.${member_str} >& obsout
 sed -e "s?MEMSTR?${member_str}?g" \
     getkf.yaml.solver.template > solver/getkf.yaml.solver.${member_str}
 
-srun -N 1 -n 36 ${executable} solver/getkf.yaml.${member_str} >& solver/log.${member_str} &
+srun -N 1 -n 36 ${executable} solver/getkf.yaml.solver.${member_str} >& solver/log.${member_str} &
       n=$(( $n + 1 ))
    done
    wait
