@@ -106,6 +106,8 @@ class Compare2Files():
                        'ObsType', 'ObsValue', 'PreUseFlag', 'PreQC',
                        'hofx_y_mean_xb0']
 
+    self.gp = GeneratePlot(debug, output=0)
+
    #copy attributes
    #for name in ncinlist[0].ncattrs():
    #  ncout.setncattr(name, ncinlist[0].getncattr(name))
@@ -123,6 +125,10 @@ class Compare2Files():
 
 #-----------------------------------------------------------------------------------------
   def process(self):
+    metadata = self.nc2.groups['MetaData']
+    lons = metadata['longitude'][:]
+    lats = metadata['latitude'][:]
+
     ng = 0
    #check groups
     for grpname, grp1 in self.nc1.groups.items():
@@ -141,6 +147,9 @@ class Compare2Files():
         val2 = grp2[varname][:]
         vald = val1 - val2
         data = [val1, val2, vald]
+        title = '%s %s' %(grpname, varname)
+        self.gp.set_title(title)
+        self.gp.plot(lons, lats, data)
        #print('\t\ttype(val2[0]) = ', type(val2))
         if(type(val2[0]) == str):
           print('\t\tThis variable is a string')
@@ -160,8 +169,8 @@ class GeneratePlot():
    #ax.coastlines(resolution='110m')
    #ax.gridlines()
 
-    nrows = 1
-    ncols = len(data)
+    nrows = len(data)
+    ncols = 1
 
    #set up the plot
     proj = ccrs.PlateCarree()
@@ -170,11 +179,14 @@ class GeneratePlot():
                             subplot_kw=dict(projection=proj),
                             figsize=(11,8.5))
  
-   #axs is a 2 dimensional array of `GeoAxes`. Flatten it into a 1-D array
+   #print('axs = ', axs)
+   #print('axs.shape = ', axs.shape)
+
     axs=axs.flatten()
 
-    for i in range(len(axs)):
-      axs[i].set_global()
+    i = 0
+    for ax in axs.flatten():
+      ax.set_global()
 
       pvar = data[i]
 
@@ -184,32 +196,47 @@ class GeneratePlot():
       vmin = np.min(pvar)
       vmax = np.max(pvar)
 
-     #cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
+      if(i < 2):
+        scale = 1
+        carr = 'orange'
+      else:
+        carr = np.arange(len(pvar))
+        vlen = vmax - vmin
+        if(vlen < 0.01):
+          vlen = 0.01
+        scale = 10.0*(pvar - vmin)/vlen + 1.0
 
-     #cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
-     #                   levels=self.clevs, extend=self.extend,
-     #                   alpha=self.alpha, cmap=self.cmapname)
-     #               cmap=self.cmapname, extend='both')
+      cs=ax.scatter(x=lons, y=lats,
+            c=carr,
+            s=scale,
+            alpha=0.5,
+            transform=proj, cmap=self.cmapname)
 
-      axs[i].set_extent([-180, 180, -90, 90], crs=proj)
-      axs[i].coastlines(resolution='auto', color='k')
-      axs[i].gridlines(color='lightgrey', linestyle='-', draw_labels=True)
+      ax.set_extent([-180, 180, -90, 90], crs=proj)
+      ax.coastlines(resolution='auto', color='k')
+      ax.gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
-     #axs[i].set_title(self.runname[i])
+     #ax.set_title(self.runname[i])
       title = '%s min: %5.2f, max: %5.2f' %(self.runname[i], vmin, vmax)
-      axs[i].set_title(title)
-
-     #minor_ticks_top=np.linspace(0,60,13)
-     #minor_ticks_top=np.linspace(-60,0,13)
-     #axs[i].set_yticks(minor_ticks_top,minor=True)
+      ax.set_title(title)
 
      #Draw the colorbar
-      cbar=plt.colorbar(cs, ax=axs[i], pad=self.pad,
-                        ticks=self.cblevs,
-                        orientation='horizontal')
+      if(i == 2):
+       #print('ticks=', self.cblevs)
+        cbar=plt.colorbar(cs, ax=ax, ticks=self.cblevs)
+       #cbar=plt.colorbar(cs, ax=ax, pad=self.pad,
+        #                 ticks=self.cblevs)
+        #                 orientation='horizontal')
 
-     #cbar.set_label(self.label, rotation=90)
-      cbar.set_label(self.label)
+        tickpos = np.arange(len(self.cblevs))/float(len(self.cblevs))
+        cbar.set_ticks(tickpos)
+        ticklbl = []
+        for v in self.cblevs:
+          vl = '%5.2f' %(v)
+          ticklbl.append(vl)
+        cbar.set_ticklabels(ticklbl)
+
+      i += 1
 
    #Add a big title at the top
     plt.suptitle(self.title)
@@ -219,13 +246,41 @@ class GeneratePlot():
 
     if(self.output):
       if(self.imagename is None):
-        imagename = 't_aspect.png'
+        imagename = 't_scatter.png'
       else:
         imagename = self.imagename
       plt.savefig(imagename)
       plt.close()
     else:
       plt.show()
+
+  def set_default(self):
+    self.imagename = 'sample.png'
+
+    self.runname = ['GSI', 'JEDI', 'JEDI - GSI']
+
+   #cmapname = coolwarm, bwr, rainbow, jet, seismic
+   #self.cmapname = 'bwr'
+   #self.cmapname = 'coolwarm'
+   #self.cmapname = 'rainbow'
+    self.cmapname = 'jet'
+
+    self.clevs = np.arange(-2.0, 2.1, 0.1)
+    self.cblevs = np.arange(-2.0, 2.5, 0.5)
+
+    self.extend = 'both'
+    self.alpha = 0.5
+    self.pad = 0.1
+    self.orientation = 'horizontal'
+    self.size = 'large'
+    self.weight = 'bold'
+    self.labelsize = 'medium'
+
+    self.label = 'Unit (C)'
+    self.title = 'Temperature Increment'
+
+  def set_title(self, title):
+    self.title = title
 
 #--------------------------------------------------------------------------------
 if __name__== '__main__':
