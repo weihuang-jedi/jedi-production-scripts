@@ -1,5 +1,9 @@
+#=========================================================================
+import os
+import sys
 import getopt
-import os, sys
+import netCDF4 as nc4
+import time
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -14,7 +18,135 @@ from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import cartopy.feature as cfeature
 import cartopy.mpl.ticker as cticker
 
-import netCDF4 as nc4
+#-----------------------------------------------------------------------------------------
+def average(vlist):
+  buf = np.zeros_like(vlist[0])
+  nmem = len(vlist)
+  for n in range(1, nmem):
+    buf += vlist[n]
+  buf /= (nmem-1)
+  return buf
+
+#-----------------------------------------------------------------------------------------
+def copy_dimension(ncin, ncout):
+ #copy dimensions
+  for name, dimension in ncin.dimensions.items():
+   #ncout.createDimension(name, (len(dimension) if not dimension.isunlimited() else None))
+    if dimension.isunlimited():
+      ncout.createDimension(name, None)
+    else:
+      ncout.createDimension(name, len(dimension))
+
+#-----------------------------------------------------------------------------------------
+def copy_attributes(ncin, ncout):
+ #copy the global attributes to the new file
+  inattrs = ncin.ncattrs()
+  for attr in inattrs:
+    if('_FillValue' != attr):
+      ncout.setncattr(attr, ncin.getncattr(attr))
+
+#-----------------------------------------------------------------------------------------
+def copy_rootvar(ncin, ncout):
+ #copy all var in root group.
+  for name, variable in ncin.variables.items():
+    ncout.createVariable(name, variable.datatype, variable.dimensions)
+   #copy variable attributes all at once via dictionary
+    ncout[name].setncatts(ncin[name].__dict__)
+    ncout[name][:] = ncin[name][:]
+
+#-----------------------------------------------------------------------------------------
+def copy_var_in_group(ncingroup, ncoutgroup):
+  fvname = '_FillValue'
+ #copy all var in group.
+  for varname, variable in ncingroup.variables.items():
+    if(fvname in variable.__dict__):
+      fill_value = variable.getncattr(fvname)
+      newvar = ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions, fill_value=fill_value)
+    else:
+      newvar = ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions)
+    copy_attributes(variable, newvar)
+    newvar[:] = ncingroup[varname][:]
+
+#-----------------------------------------------------------------------------------------
+def copy_grp2newname(name, n, group, ncout):
+  item = name.split('_')
+  item[-1] = '%d' %(n)
+  newname = '_'.join(item)
+  print('No %d name: %s, newname: %s' %(n, name, newname))
+  ncoutgroup = ncout.createGroup(newname)
+  copy_var_in_group(group, ncoutgroup)
+
+#-----------------------------------------------------------------------------------------
+class Compare2Files():
+  def __init__(self, debug=0, flnm1=None, flnm2=None):
+    self.debug = debug
+    self.flnm1 = flnm1
+    self.flnm2 = flnm2
+
+    if(os.path.exists(flnm1)):
+     #print('flnm1: ', flnm1)
+      self.nc1 = nc4.Dataset(flnm1, 'r')
+    else:
+      self.nc1 = None
+      print('flnm1: %s does not exist.' %(flnm1))
+      sys.exit(-1)
+
+    if(os.path.exists(flnm2)):
+     #print('flnm2: ', flnm2)
+      self.nc2 = nc4.Dataset(flnm2, 'r')
+    else:
+      self.nc2 = None
+      print('flnm2: %s does not exist.' %(flnm2))
+      sys.exit(-1)
+
+    self.exceptlist = ['EffectiveError0', 'EffectiveQC0',
+                       'GsiAdjustObsError', 'GsiEffectiveQC', 'GsiFinalObsError',
+                       'GsiHofX', 'GsiHofXBc', 'GsiQCWeight', 'GsiUseFlag',
+                       'MetaData', 'ObsBias', 'ObsBias0', 'ObsError',
+                       'ObsType', 'ObsValue', 'PreUseFlag', 'PreQC',
+                       'hofx_y_mean_xb0']
+
+   #copy attributes
+   #for name in ncinlist[0].ncattrs():
+   #  ncout.setncattr(name, ncinlist[0].getncattr(name))
+
+   #copy_dimension(ncinlist[0], ncout)
+   #copy_rootvar(ncinlist[0], ncout)
+
+    self.process()
+ 
+  def __del__(self):
+    if(self.nc1 is not None):
+      self.nc1.close()
+    if(self.nc2 is not None):
+      self.nc2.close()
+
+#-----------------------------------------------------------------------------------------
+  def process(self):
+    ng = 0
+   #check groups
+    for grpname, grp1 in self.nc1.groups.items():
+      if(grpname in self.exceptlist):
+        continue
+      if(grpname.find('hofx0_') == 0):
+        continue
+      ng += 1
+      print('Grp No %d, name: %s' %(ng, grpname))
+      grp2 = self.nc2.groups[grpname]
+      nv = 0
+      for varname, variable in grp1.variables.items():
+        nv += 1
+        print('\tVar No %d, name: %s' %(nv, varname))
+        val1 = grp1[varname][:]
+        val2 = grp2[varname][:]
+        vald = val1 - val2
+        data = [val1, val2, vald]
+       #print('\t\ttype(val2[0]) = ', type(val2))
+        if(type(val2[0]) == str):
+          print('\t\tThis variable is a string')
+        else:
+          print('\t\tval1 min: %f, max: %f' %(np.min(val1), np.max(val1)))
+          print('\t\tvar2 min: %f, max: %f' %(np.min(val2), np.max(val2)))
 
 #=========================================================================
 class GeneratePlot():
@@ -28,8 +160,8 @@ class GeneratePlot():
    #ax.coastlines(resolution='110m')
    #ax.gridlines()
 
-    nrows = len(data)
-    ncols = 1
+    nrows = 1
+    ncols = len(data)
 
    #set up the plot
     proj = ccrs.PlateCarree()
@@ -52,27 +184,11 @@ class GeneratePlot():
       vmin = np.min(pvar)
       vmax = np.max(pvar)
 
-     #if((vmax - vmin) > 1.0e-5):
-     #  self.clevs, self.cblevs = get_plot_levels(pvar)
+     #cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
 
-      if(i < 2):
-       #self.cmapname = 'coolwarm'
-       #self.cmapname = 'rainbow'
-        self.cmapname = 'jet'
-        self.clevs = np.arange(-2.0, 2.1, 0.1)
-        self.cblevs = np.arange(-2.0, 3.0, 1.0)
-      else:
-        self.cmapname = 'bwr'
-       #self.clevs = np.arange(-2.0, 2.1, 0.1)
-       #self.cblevs = np.arange(-2.0, 3.0, 1.0)
-        self.clevs = np.arange(-0.01, 0.011, 0.001)
-        self.cblevs = np.arange(-0.01, 0.015, 0.005)
-
-      cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
-
-      cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
-                         levels=self.clevs, extend=self.extend,
-                         alpha=self.alpha, cmap=self.cmapname)
+     #cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
+     #                   levels=self.clevs, extend=self.extend,
+     #                   alpha=self.alpha, cmap=self.cmapname)
      #               cmap=self.cmapname, extend='both')
 
       axs[i].set_extent([-180, 180, -90, 90], crs=proj)
@@ -111,53 +227,10 @@ class GeneratePlot():
     else:
       plt.show()
 
-  def set_default(self):
-    self.imagename = 'sample.png'
-
-    self.runname = ['First', 'Second', 'Second - First']
-
-   #cmapname = coolwarm, bwr, rainbow, jet, seismic
-    self.cmapname = 'bwr'
-   #self.cmapname = 'coolwarm'
-   #self.cmapname = 'rainbow'
-   #self.cmapname = 'jet'
-
-    self.clevs = np.arange(-0.2, 0.21, 0.01)
-    self.cblevs = np.arange(-0.2, 0.3, 0.1)
-
-    self.extend = 'both'
-    self.alpha = 0.5
-    self.pad = 0.1
-    self.orientation = 'horizontal'
-    self.size = 'large'
-    self.weight = 'bold'
-    self.labelsize = 'medium'
-
-    self.label = 'Unit (C)'
-    self.title = 'Temperature Increment'
-
-  def set_label(self, label='Unit (C)'):
-    self.label = label
-
-  def set_title(self, title='Temperature Increment'):
-    self.title = title
-
-  def set_clevs(self, clevs=[]):
-    self.clevs = clevs
-
-  def set_cblevs(self, cblevs=[]):
-    self.cblevs = cblevs
-
-  def set_imagename(self, imagename):
-    self.imagename = imagename
-
-  def set_cmapname(self, cmapname):
-    self.cmapname = cmapname
-
 #--------------------------------------------------------------------------------
 if __name__== '__main__':
   debug = 1
-  output = 0
+
   topdir = '/work2/noaa/gsienkf/weihuang/production/run/sondes'
   frtdir = '%s/run_80.40t1n_36p' %(topdir)
   snddir = '%s/1_rr_observer_whole_solver.run_81.36t9n' %(topdir)
@@ -179,69 +252,5 @@ if __name__== '__main__':
     else:
       assert False, 'unhandled option'
 
-#-----------------------------------------------------------------------------------------
-  gp = GeneratePlot(debug=debug, output=output)
-
-  ncfrt = nc4.Dataset(frtfile, 'r')
-  ncsnd = nc4.Dataset(sndfile, 'r')
-
-  lats = ncsnd.variables['/MetaData/latitude'][:]
-  lons = ncsnd.variables['/MetaData/longitude'][:]
-
-#-----------------------------------------------------------------------------------------
-  clevs = np.arange(-1.0, 1.01, 0.01)
-  cblevs = np.arange(-1.0, 1.1, 0.1)
-
-  gp.set_clevs(clevs=clevs)
-  gp.set_cblevs(cblevs=cblevs)
-
-#-----------------------------------------------------------------------------------------
- #varlist = ['tmp', 'ugrd', 'vgrd', 'delp', 'spfh', 'o3mr', 'delz']
- #unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)', 'Unit (Pa)',
- #            'Unit (kg/kg)', 'Unit (ppm)', 'Unit (m)']
- #varlist = ['T_inc', 'delp_inc', 'sphum_inc', 'o3mr_inc', 'delz_inc']
-  varlist = ['T', 'delp', 'sphum', 'o3mr', 'DZ', 'ua', 'va']
-  unitlist = ['Unit (C)', 'Unit (Pa)',
-              'Unit (kg/kg)', 'Unit (kg/kg)', 'Unit (m)', 'Unit (m/s)', 'Unit (m/s)']
-
-#-----------------------------------------------------------------------------------------
-  for n in range(len(varlist)):
-    sndvar = ncsnd.variables[varlist[n]][0,:, :, :]
-    frtvar = ncfrt.variables[varlist[n]][0,:, :, :]
-
-    print('sndvar.shape = ', sndvar.shape)
-   #print('frtvar.shape = ', frtvar.shape)
-    nlev, nlat, nlon = sndvar.shape
-
-    gp.set_label(unitlist[n])
-
-    for lev in range(5, nlev, 10):
-      v0 = frtvar[lev,:,:]
-      v0 = np.where(np.isnan(v0), 0.0, v0)
-      v1 = sndvar[lev,:,:]
-      v1 = np.where(np.isnan(v1), 0.0, v1)
-      v2 = v1 - v0
-
-      data = [v0, v1, v2]
-
-      title = '%s at Level %d' %(varlist[n], lev)
-      gp.set_title(title)
-
-      print('Plotting ', title)
-      print('\tv0.shape = ', v0.shape)
-      print('\tv1.shape = ', v1.shape)
-      print('\tv2.shape = ', v2.shape)
- 
-      print('\tv0.max: %f, v0.min: %f' %(np.max(v0), np.min(v0)))
-      print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
-      print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
-
-      imagename = '%s_lev_%3.3d.png' %(varlist[n], lev)
-      gp.set_imagename(imagename)
-
-      gp.plot(lons, lats, data=data)
-
-#-----------------------------------------------------------------------------------------
-  ncsnd.close()
-  ncfrt.close()
+  c2f = Compare2Files(flnm1 = frtfile, flnm2 = sndfile)
 
