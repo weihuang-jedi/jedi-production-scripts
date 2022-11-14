@@ -155,62 +155,15 @@ class GeneratePlot():
     self.cmapname = cmapname
 
 #--------------------------------------------------------------------------------
-def get_plot_levels(var):
-  vmin = np.min(var)
-  vmax = np.max(var)
-
-  print('\tget_plot_lelves: vmin = %f, vmax = %f' %(vmin, vmax))
-
-  vcen = 0.5*(vmax + vmin)
-
-  if(vcen >= 1.0):
-    vcen = 10.0*int(vcen/10.0)
-    pmax = 10.0*int(0.5 + (vmax-vcen)/10.0) + vcen
-    pmin = vcen - 10.0*int(0.5 + (vmax-vcen)/10.0)
-  else:
-    pcen = vcen
-    fact = 1.0
-    while(pcen < 1.0):
-      fact *= 10.0
-      pcen *= 10.0
-    vcen = 10.0*int(pcen/10.0)/fact
-    pmax = 10.0*int(0.5 + fact*(vmax-vcen)/10.0)/fact + vcen
-    pmin = vcen - 10.0*int(0.5 + fact*(vmax-vcen)/10.0)/fact
-
-  print('\tget_plot_lelves: pmin = %f, pcen = %f, pmax = %f' %(pmin, vcen, pmax))
-
-  delt = (pmax - pmin)/200.0
-  clevs = np.arange(pmin, pmax + delt, delt)
-
-  delt = (pmax - pmin)/20.0
-  cblevs = np.arange(pmin, pmax + delt, delt)
-
- #print('\tclevs: ', clevs[::10])
- #print('\tcblevs: ', cblevs)
-
-  return clevs, cblevs
-
-#--------------------------------------------------------------------------------
 if __name__== '__main__':
   debug = 1
   output = 0
- #frtdir = '/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_JEDI_full_run/run_80.36t1n_36p/analysis/increment'
- #snddir = '/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_RR_develop/run_80.36t1n_36p/analysis/increment'
   topdir = '/work2/noaa/gsienkf/weihuang/production/run/sondes'
-  memdir = 'analysis/increment/mem001'
- #memdir = 'analysis/increment'
-  frtdir = '%s/run_80.40t1n_36p/%s' %(topdir, memdir)
- #memdir = 'analysis.saved/increment'
- #snddir = '%s/1_rr_observer_whole_solver.run_81.36t9n/%s' %(topdir, memdir)
- #snddir = '%s/run_81.36t9n/%s' %(topdir, memdir)
- #frtdir = '%s/1_rr_observer_whole_solver.run_81.36t9n/%s' %(topdir, memdir)
-  snddir = '%s/1_rr_observer_whole_solver.run_81.36t9n/%s' %(topdir, memdir)
- #snddir = '%s/1_rr_observer_ens_solver.run_81.36t9n/%s' %(topdir, memdir)
+  frtdir = '%s/run_80.40t1n_36p' %(topdir)
+  snddir = '%s/1_rr_observer_whole_solver.run_81.36t9n' %(topdir)
 
-  frtfile = '%s/getkf.increment.20200101_120000z.nc4' %(frtdir)
-  sndfile = '%s/getkf.increment.20200101_120000z.nc4' %(snddir)
- #frtfile = '%s/xainc.20200101_120000z.nc4' %(frtdir)
- #sndfile = '%s/xainc.20200101_120000z.nc4' %(snddir)
+  frtfile = '%s/observer/sondes_tv_obs_2020010112_0000.nc4' %(frtdir)
+  sndfile = '%s/observer/sondes_tv_obs_2020010112_0000.nc4' %(snddir)
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
                                                 'sndfile=', 'frtfile='])
@@ -232,8 +185,8 @@ if __name__== '__main__':
   ncfrt = nc4.Dataset(frtfile, 'r')
   ncsnd = nc4.Dataset(sndfile, 'r')
 
-  lats = ncsnd.variables['lat'][:]
-  lons = ncsnd.variables['lon'][:]
+  lats = ncsnd.variables['/MetaData/latitude'][:]
+  lons = ncsnd.variables['/MetaData/longitude'][:]
 
 #-----------------------------------------------------------------------------------------
   clevs = np.arange(-1.0, 1.01, 0.01)
