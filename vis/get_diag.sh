@@ -14,6 +14,8 @@
    edate=$2
    interval=$3
    flag=$4
+   case1=$5
+   case2=$6
 
   #argnum=0
   #echo "@ gives:"
@@ -23,22 +25,37 @@
   #  echo "Arg $argnum: <$arg>"
   #done
 
-   python diag.py --sdate=$sdate --edate=$edate --interval=$interval > obs_count_${flag}.csv
-   python plot-jedi-gsi-diag.py --output=1 >> obs_count_${flag}.csv
+   python diag.py --sdate=$sdate --edate=$edate \
+     --case1=${case1} --case2=${case2} --interval=$interval \
+     --datadir=/work2/noaa/da/weihuang/cycling > obs_count_${flag}.csv
+
+   lbl1=$(echo ${case1} | tr '[:lower:]' '[:upper:]')
+   lbl2=$(echo ${case2} | tr '[:lower:]' '[:upper:]')
+
+   python plot-jedi-gsi-diag.py --lbl1=${lbl1} --lbl2=${lbl2} \
+	--fexp=${case1} --sexp=${case2} \
+	--output=1 >> obs_count_${flag}.csv
+
+   dirname=${case2}-${case1}
+   mkdir -p ${dirname}
+   mv obs_count_${flag}.csv ${dirname}/.
    for fl in diag_omf_rmshumid diag_omf_rmstemp diag_omf_rmswind humidity_rms temp_rms wind_rms
    do
-     mv ${fl}.png ${fl}_${flag}.png
+     mv ${fl}.png ${dirname}/${fl}_${flag}.png
    done
-   for case in gsi jedi
+   for case in ${case1} ${case2}
    do
-     mv ${case}_stats ${case}_${flag}_stats
-     mv ${case}_stats.nc ${case}_${flag}_stats.nc
+     mv ${case}_stats ${dirname}/${case}_${flag}_stats
+     mv ${case}_stats.nc ${dirname}/${case}_${flag}_stats.nc
    done
  }
 
- plot_stats 2020010118 2020010818 12 at_6h
- plot_stats 2020010112 2020010812 12 at_12h
- plot_stats 2020010112 2020010812 6  all
+#edate=2020011600
+ edate=2020011818
+
+ plot_stats 2020010118 ${edate} 12 at_6h  gsi jedi
+ plot_stats 2020010112 ${edate} 12 at_12h gsi jedi
+ plot_stats 2020010112 ${edate} 6  all    gsi jedi
 
  exit 0
 

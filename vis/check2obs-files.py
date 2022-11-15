@@ -132,10 +132,10 @@ class Compare2Files():
     ng = 0
    #check groups
     for grpname, grp1 in self.nc1.groups.items():
-      if(grpname in self.exceptlist):
-        continue
-      if(grpname.find('hofx0_') == 0):
-        continue
+     #if(grpname in self.exceptlist):
+     #  continue
+     #if(grpname.find('hofx0_') == 0):
+     #  continue
       ng += 1
       print('Grp No %d, name: %s' %(ng, grpname))
       grp2 = self.nc2.groups[grpname]
@@ -145,17 +145,19 @@ class Compare2Files():
         print('\tVar No %d, name: %s' %(nv, varname))
         val1 = grp1[varname][:]
         val2 = grp2[varname][:]
-        vald = val1 - val2
-        data = [val1, val2, vald]
-        title = '%s %s' %(grpname, varname)
-        self.gp.set_title(title)
-        self.gp.plot(lons, lats, data)
        #print('\t\ttype(val2[0]) = ', type(val2))
         if(type(val2[0]) == str):
           print('\t\tThis variable is a string')
+          continue
         else:
+          vald = val1 - val2
           print('\t\tval1 min: %f, max: %f' %(np.min(val1), np.max(val1)))
-          print('\t\tvar2 min: %f, max: %f' %(np.min(val2), np.max(val2)))
+          print('\t\tval2 min: %f, max: %f' %(np.min(val2), np.max(val2)))
+          print('\t\tvald min: %f, max: %f' %(np.min(vald), np.max(vald)))
+       #data = [val1, val2, vald]
+       #title = '%s %s' %(grpname, varname)
+       #self.gp.set_title(title)
+       #self.gp.plot(lons, lats, data)
 
 #=========================================================================
 class GeneratePlot():

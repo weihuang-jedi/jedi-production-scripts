@@ -383,9 +383,11 @@ if __name__== '__main__':
   interval = 12
   sdate = '2020010112'
   edate = '2020010218'
-  case = 'gsi'
+  case1 = 'gsi'
+  case2 = 'jedi'
  #datadir = '/scratch2/BMC/gsienkf/Wei.Huang/producttion/run'
-  datadir = '/work2/noaa/gsienkf/weihuang/gsi'
+ #datadir = '/work2/noaa/gsienkf/weihuang/gsi'
+  datadir = '/work2/noaa/da/weihuang/cycling'
   type = 'C96_lgetkf_sondesonly'
   runid = 'ensmean'
   hem = 'NH'
@@ -396,7 +398,8 @@ if __name__== '__main__':
   latbound=30
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=', 'sdate=', 'edate=',
-                                                'datadir=', 'runid=', 'hem=', 'type=', 'interval='])
+                                                'datadir=', 'runid=', 'hem=', 'type=',
+                                                'case1=', 'case2=', 'interval='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
@@ -414,6 +417,10 @@ if __name__== '__main__':
       hem = a
     elif o in ('--type'):
       type = a
+    elif o in ('--case1'):
+      case1 = a
+    elif o in ('--case2'):
+      case2 = a
     elif o in ('--interval'):
       interval = int(a)
     else:
@@ -425,7 +432,7 @@ if __name__== '__main__':
                   runid=runid, hem=hem, sondesonly=sondesonly, interval=interval,
                   noair=noair, aironly=aironly, latbound=latbound)
 
-  for case in ['gsi', 'jedi']:
+  for case in [case1, case2]:
     datapath = '%s/%s_%s' %(datadir, case, type)
     outfile = '%s_stats' %(case)
     dof.process(datapath, outfile)
