@@ -38,24 +38,57 @@
 
    dirname=${case2}-${case1}
    mkdir -p ${dirname}
-   mv obs_count_${flag}.csv ${dirname}/.
+   mv -f obs_count_${flag}.csv ${dirname}/.
    for fl in diag_omf_rmshumid diag_omf_rmstemp diag_omf_rmswind humidity_rms temp_rms wind_rms
    do
-     mv ${fl}.png ${dirname}/${fl}_${flag}.png
+     mv -f ${fl}.png ${dirname}/${fl}_${flag}.png
    done
    for case in ${case1} ${case2}
    do
-     mv ${case}_stats ${dirname}/${case}_${flag}_stats
-     mv ${case}_stats.nc ${dirname}/${case}_${flag}_stats.nc
+     mv -f ${case}_stats ${dirname}/${case}_${flag}_stats
+     mv -f ${case}_stats.nc ${dirname}/${case}_${flag}_stats.nc
    done
+   mv -f *stats* ${dirname}/.
+   mv -f *.csv ${dirname}/.
+   mv -f *.png ${dirname}/.
  }
 
 #edate=2020011600
  edate=2020011818
 
- plot_stats 2020010118 ${edate} 12 at_6h  gsi jedi
- plot_stats 2020010112 ${edate} 12 at_12h gsi jedi
- plot_stats 2020010112 ${edate} 6  all    gsi jedi
+#plot_stats 2020010118 ${edate} 12 at_6h  gsi jedi
+#plot_stats 2020010112 ${edate} 12 at_12h gsi jedi
+#plot_stats 2020010112 ${edate} 6  all    gsi jedi
+
+#plot_stats 2020010118 ${edate} 12 at_6h  jedi orig.jedi
+#plot_stats 2020010112 ${edate} 12 at_12h jedi orig.jedi
+#plot_stats 2020010112 ${edate} 6  all    jedi orig.jedi
+
+#plot_stats 2020010118 ${edate} 12 at_6h  orig.gsi jedi
+#plot_stats 2020010112 ${edate} 12 at_12h orig.gsi jedi
+#plot_stats 2020010112 ${edate} 6  all    orig.gsi jedi
+
+#plot_stats 2020010118 ${edate} 12 at_6h  orig.gsi orig.jedi
+#plot_stats 2020010112 ${edate} 12 at_12h orig.gsi orig.jedi
+#plot_stats 2020010112 ${edate} 6  all    orig.gsi orig.jedi
+
+#plot_stats 2020010118 ${edate} 12 at_6h  orig.gsi gsi
+#plot_stats 2020010112 ${edate} 12 at_12h orig.gsi gsi
+#plot_stats 2020010112 ${edate} 6  all    orig.gsi gsi
+
+#------------------------------------------------------------------------------
+ firstlist=(gsi   jedi      orig.gsi orig.gsi  orig.gsi)
+ secondlist=(jedi orig.jedi jedi     orig.jedi gsi)
+ for j in ${!firstlist[@]}
+ do
+   first=${firstlist[$j]}
+   second=${secondlist[$j]}
+   echo "first: ${first}, second: ${second}"
+
+   plot_stats 2020010118 ${edate} 12 at_6h  ${first} ${second}
+   plot_stats 2020010112 ${edate} 12 at_12h ${first} ${second}
+   plot_stats 2020010112 ${edate} 6  all    ${first} ${second}
+ done
 
  exit 0
 

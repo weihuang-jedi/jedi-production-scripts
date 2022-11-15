@@ -449,19 +449,17 @@ class Plot_JEDI_GSI_Diag():
     plt.legend(loc=0)
 
     plt.figtext(0.5,0.93,'%s RMS O-F (%s)' % (title,dates_txt),horizontalalignment='center',fontsize=14)
-    plt.savefig('mean_rms_%s_%s.png' % (title,region))
+   #plt.savefig('mean_rms_%s_%s.png' % (title,region))
+   #plt.close()
 
-    plt.show()
+   #plt.show()
 
-   #if(self.output):
-   #  if(self.imagename is None):
-   #    imagename = 'sample.png'
-   #  else:
-   #    imagename = self.imagename
-   #  plt.savefig(imagename)
-   #  plt.close()
-   #else:
-   #  plt.show()
+    if(self.output):
+      imagename = 'mean_rms_%s_%s.png' % (title,region)
+      plt.savefig(imagename)
+      plt.close()
+    else:
+      plt.show()
 
   def set_default(self):
     self.imagename = 'sample.png'
@@ -617,9 +615,16 @@ class Plot_JEDI_GSI_Diag():
 
     plt.figtext(0.5,0.93,'%s RMS O-F (%s)' % (title,dates_txt),horizontalalignment='center',fontsize=14)
    #plt.savefig('obfits_%s_%s_%s.png' % (lbl1,lbl2,region))
-    plt.savefig('obfits_%s_%s.png' % (title,region))
+   #plt.savefig('obfits_%s_%s.png' % (title,region))
 
-    plt.show()
+   #plt.show()
+
+    if(self.output):
+      imagename = 'obfits_%s_%s_%s.png' % (lbl1,lbl2,region)
+      plt.savefig(imagename)
+      plt.close()
+    else:
+      plt.show()
 
 #--------------------------------------------------------------------------------
 if __name__== '__main__':
