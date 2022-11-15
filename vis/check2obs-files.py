@@ -201,10 +201,10 @@ class GeneratePlot():
         carr = 'orange'
       else:
         carr = np.arange(len(pvar))
-        vlen = vmax - vmin
+        vlen = self.cblevs[-1] - self.cblevs[0]
         if(vlen < 0.01):
           vlen = 0.01
-        scale = 10.0*(pvar - vmin)/vlen + 1.0
+        scale = 100.0*(pvar - self.cblevs[0])/vlen + 1.0
 
       cs=ax.scatter(x=lons, y=lats,
             c=carr,
@@ -223,16 +223,18 @@ class GeneratePlot():
      #Draw the colorbar
       if(i == 2):
        #print('ticks=', self.cblevs)
-        cbar=plt.colorbar(cs, ax=ax, ticks=self.cblevs)
+        cbar=plt.colorbar(cs, ax=ax, shrink=0.75)
+       #cbar=plt.colorbar(cs, ax=ax, ticks=self.cblevs, shrink=0.75)
+       #cbar=plt.colorbar(cs, ticks=self.cblevs, shrink=0.75)
        #cbar=plt.colorbar(cs, ax=ax, pad=self.pad,
-        #                 ticks=self.cblevs)
-        #                 orientation='horizontal')
+       #                  ticks=self.cblevs)
+       #                  orientation='horizontal')
 
-        tickpos = np.arange(len(self.cblevs))/float(len(self.cblevs))
+        tickpos = np.arange(1.0, 101.0, 10.0)/100.0
         cbar.set_ticks(tickpos)
         ticklbl = []
-        for v in self.cblevs:
-          vl = '%5.2f' %(v)
+        for v in tickpos:
+          vl = '%5.2f' %(vlen*(v-1.0)/100.0 + self.cblevs[0])
           ticklbl.append(vl)
         cbar.set_ticklabels(ticklbl)
 
