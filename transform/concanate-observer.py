@@ -136,8 +136,8 @@ def process(ncinlist, ncout, grplist):
     else:
       newvar = ncoutgroup.createVariable(varname, variable.datatype, variable.dimensions)
     copy_attributes(variable, newvar)
-   #val = ensvarinfo[grpname][varname] + ensvarinfo['hofx_y_mean_xb0'][varname] - meanvars[varname]
-    val = ensvarinfo[grpname][varname]
+    val = ensvarinfo[grpname][varname] + ensvarinfo['hofx_y_mean_xb0'][varname] - meanvars[varname]
+   #val = ensvarinfo[grpname][varname]
     newvar[:] = val[:]
 
 #-----------------------------------------------------------------------------------------
