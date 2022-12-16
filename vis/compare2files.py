@@ -65,8 +65,14 @@ class GeneratePlot():
         self.cmapname = 'bwr'
        #self.clevs = np.arange(-2.0, 2.1, 0.1)
        #self.cblevs = np.arange(-2.0, 3.0, 1.0)
-        self.clevs = np.arange(-0.01, 0.011, 0.001)
-        self.cblevs = np.arange(-0.01, 0.015, 0.005)
+        self.clevs = np.arange(-1.0, 1.05, 0.05)
+        self.cblevs = np.arange(-1.0, 1.2, 0.2)
+       #self.clevs = np.arange(-0.01, 0.011, 0.001)
+       #self.cblevs = np.arange(-0.01, 0.015, 0.005)
+
+      self.cmapname = 'bwr'
+      self.clevs = np.arange(-2.0, 2.1, 0.1)
+      self.cblevs = np.arange(-2.0, 2.5, 0.5)
 
       cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
 
@@ -89,8 +95,9 @@ class GeneratePlot():
 
      #Draw the colorbar
       cbar=plt.colorbar(cs, ax=axs[i], pad=self.pad,
-                        ticks=self.cblevs,
-                        orientation='horizontal')
+                        ticks=self.cblevs, shrink=0.85,
+                        orientation='vertical')
+                       #orientation='horizontal')
 
      #cbar.set_label(self.label, rotation=90)
       cbar.set_label(self.label)
@@ -194,23 +201,11 @@ def get_plot_levels(var):
 if __name__== '__main__':
   debug = 1
   output = 0
- #frtdir = '/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_JEDI_full_run/run_80.36t1n_36p/analysis/increment'
- #snddir = '/work2/noaa/gsienkf/weihuang/jedi/case_study/allobs_RR_develop/run_80.36t1n_36p/analysis/increment'
   topdir = '/work2/noaa/gsienkf/weihuang/production/run/sondes'
-  memdir = 'analysis/increment/mem001'
- #memdir = 'analysis/increment'
-  frtdir = '%s/run_80.40t1n_36p/%s' %(topdir, memdir)
- #memdir = 'analysis.saved/increment'
- #snddir = '%s/1_rr_observer_whole_solver.run_81.36t9n/%s' %(topdir, memdir)
- #snddir = '%s/run_81.36t9n/%s' %(topdir, memdir)
- #frtdir = '%s/1_rr_observer_whole_solver.run_81.36t9n/%s' %(topdir, memdir)
-  snddir = '%s/1_rr_observer_whole_solver.run_81.36t9n/%s' %(topdir, memdir)
- #snddir = '%s/1_rr_observer_ens_solver.run_81.36t9n/%s' %(topdir, memdir)
-
-  frtfile = '%s/getkf.increment.20200101_120000z.nc4' %(frtdir)
-  sndfile = '%s/getkf.increment.20200101_120000z.nc4' %(snddir)
- #frtfile = '%s/xainc.20200101_120000z.nc4' %(frtdir)
- #sndfile = '%s/xainc.20200101_120000z.nc4' %(snddir)
+  incdir = 'analysis/increment'
+  frtdir = '%s/new.1_rr_observer_whole_solver.run_81.36t9n/%s' %(topdir, incdir)
+ #snddir = '%s/whole.run_80.40t1n_36p/%s' %(topdir, incdir)
+  snddir = '%s/observer.run_80.40t1n_36p/%s' %(topdir, incdir)
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
                                                 'sndfile=', 'frtfile='])
@@ -228,6 +223,9 @@ if __name__== '__main__':
 
 #-----------------------------------------------------------------------------------------
   gp = GeneratePlot(debug=debug, output=output)
+
+  frtfile = '%s/xainc.20200101_120000z.nc4' %(frtdir)
+  sndfile = '%s/xainc.20200101_120000z.nc4' %(snddir)
 
   ncfrt = nc4.Dataset(frtfile, 'r')
   ncsnd = nc4.Dataset(sndfile, 'r')
@@ -247,26 +245,26 @@ if __name__== '__main__':
  #unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)', 'Unit (Pa)',
  #            'Unit (kg/kg)', 'Unit (ppm)', 'Unit (m)']
  #varlist = ['T_inc', 'delp_inc', 'sphum_inc', 'o3mr_inc', 'delz_inc']
-  varlist = ['T', 'delp', 'sphum', 'o3mr', 'DZ', 'ua', 'va']
-  unitlist = ['Unit (C)', 'Unit (Pa)',
-              'Unit (kg/kg)', 'Unit (kg/kg)', 'Unit (m)', 'Unit (m/s)', 'Unit (m/s)']
+  varlist = ['T', 'ua', 'va', 'delp', 'sphum', 'o3mr', 'DZ']
+  unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)', 'Unit (Pa)',
+              'Unit (kg/kg)', 'Unit (kg/kg)', 'Unit (m)']
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(varlist)):
-    sndvar = ncsnd.variables[varlist[n]][0,:, :, :]
-    frtvar = ncfrt.variables[varlist[n]][0,:, :, :]
+   #sndvar = ncsnd.variables[varlist[n]][:, :, :]
+   #frtvar = ncfrt.variables[varlist[n]][:, :, :]
+    sndvar = ncsnd.variables[varlist[n]][0, :, :, :]
+    frtvar = ncfrt.variables[varlist[n]][0, :, :, :]
 
     print('sndvar.shape = ', sndvar.shape)
-   #print('frtvar.shape = ', frtvar.shape)
+    print('frtvar.shape = ', frtvar.shape)
     nlev, nlat, nlon = sndvar.shape
 
     gp.set_label(unitlist[n])
 
     for lev in range(5, nlev, 10):
       v0 = frtvar[lev,:,:]
-      v0 = np.where(np.isnan(v0), 0.0, v0)
       v1 = sndvar[lev,:,:]
-      v1 = np.where(np.isnan(v1), 0.0, v1)
       v2 = v1 - v0
 
       data = [v0, v1, v2]

@@ -88,6 +88,7 @@ def process(ncinlist, ncout, grplist):
           copy_var_in_group(group, ncoutgroup)
         for varname, variable in group.variables.items():
           val = group[varname][:]
+          val[:] = 0.0
           ensvarinfo[grpname][varname] = val
     else:
       if(grpname.find('hofx') < 0):

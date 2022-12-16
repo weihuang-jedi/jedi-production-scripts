@@ -78,10 +78,11 @@ def copy_grp2newname(name, n, group, ncout):
 
 #-----------------------------------------------------------------------------------------
 class Compare2Files():
-  def __init__(self, debug=0, flnm1=None, flnm2=None):
+  def __init__(self, debug=0, flnm1=None, flnm2=None, showall=0):
     self.debug = debug
     self.flnm1 = flnm1
     self.flnm2 = flnm2
+    self.showall = showall
 
     if(os.path.exists(flnm1)):
      #print('flnm1: ', flnm1)
@@ -129,6 +130,9 @@ class Compare2Files():
     lons = metadata['longitude'][:]
     lats = metadata['latitude'][:]
 
+    needprint = self.showall
+
+    mindiffval = 1.0e-6
     ng = 0
    #check groups
     for grpname, grp1 in self.nc1.groups.items():
@@ -136,13 +140,19 @@ class Compare2Files():
      #  continue
      #if(grpname.find('hofx0_') == 0):
      #  continue
+      showinfo = []
       ng += 1
-      print('Grp No %d, name: %s' %(ng, grpname))
+      grpinfo = 'Grp No %d, name: %s' %(ng, grpname)
+      prtinfo = None
+      if(self.showall):
+        print(grpinfo)
       grp2 = self.nc2.groups[grpname]
       nv = 0
       for varname, variable in grp1.variables.items():
         nv += 1
-        print('\tVar No %d, name: %s' %(nv, varname))
+        varinfo = '\tVar No %d, name: %s' %(nv, varname)
+        if(self.showall):
+          print(varinfo)
         val1 = grp1[varname][:]
         val2 = grp2[varname][:]
        #print('\t\ttype(val2[0]) = ', type(val2))
@@ -151,13 +161,28 @@ class Compare2Files():
           continue
         else:
           vald = val1 - val2
-          print('\t\tval1 min: %f, max: %f' %(np.min(val1), np.max(val1)))
-          print('\t\tval2 min: %f, max: %f' %(np.min(val2), np.max(val2)))
-          print('\t\tvald min: %f, max: %f' %(np.min(vald), np.max(vald)))
-       #data = [val1, val2, vald]
-       #title = '%s %s' %(grpname, varname)
-       #self.gp.set_title(title)
-       #self.gp.plot(lons, lats, data)
+          v1info = '\t\tval1 min: %f, max: %f' %(np.min(val1), np.max(val1))
+          v2info = '\t\tval2 min: %f, max: %f' %(np.min(val2), np.max(val2))
+          vdinfo = '\t\tvald min: %f, max: %f' %(np.min(vald), np.max(vald))
+          if(self.showall):
+            print(v1info)
+            print(v2info)
+            print(vdinfo)
+          else:
+            if(np.min(vald) < -mindiffval or np.max(vald) > mindiffval):
+              if(prtinfo is None):
+                prtinfo = [grpinfo, varinfo, v1info, v2info, vdinfo]
+              else:
+                prtinfo.exentd([varinfo, v1info, v2info, vdinfo])
+
+         #data = [val1, val2, vald]
+         #title = '%s %s' %(grpname, varname)
+         #self.gp.set_title(title)
+         #self.gp.plot(lons, lats, data)
+
+      if(prtinfo is not None):
+        for item in prtinfo:
+          print(item)
 
 #=========================================================================
 class GeneratePlot():
@@ -199,20 +224,23 @@ class GeneratePlot():
       vmax = np.max(pvar)
 
       if(i < 2):
-        scale = 1
-        carr = 'orange'
+        cs=ax.scatter(x=lons, y=lats,
+                      c='cyan', s=1, alpha=0.5,
+                      transform=proj, cmap=self.cmapname)
       else:
         carr = np.arange(len(pvar))
-        vlen = self.cblevs[-1] - self.cblevs[0]
+       #vlen = self.cblevs[-1] - self.cblevs[0]
+        vlen = vmax - vmin
         if(vlen < 0.01):
           vlen = 0.01
-        scale = 100.0*(pvar - self.cblevs[0])/vlen + 1.0
-
-      cs=ax.scatter(x=lons, y=lats,
-            c=carr,
-            s=scale,
-            alpha=0.5,
-            transform=proj, cmap=self.cmapname)
+        scale = 10.0*(pvar - vmin)/vlen + 1.0
+        step = vlen/4
+        self.cblevs = np.arange(vmin, vmax+0.5*step, step)
+        print('vlen = ', vlen)
+        print('scale = ', scale)
+        cs=ax.scatter(x=lons, y=lats,
+                      c=carr, s=scale, alpha=0.5,
+                      transform=proj, cmap=self.cmapname)
 
       ax.set_extent([-180, 180, -90, 90], crs=proj)
       ax.coastlines(resolution='auto', color='k')
@@ -225,8 +253,8 @@ class GeneratePlot():
      #Draw the colorbar
       if(i == 2):
        #print('ticks=', self.cblevs)
-        cbar=plt.colorbar(cs, ax=ax, shrink=0.75)
-       #cbar=plt.colorbar(cs, ax=ax, ticks=self.cblevs, shrink=0.75)
+       #cbar=plt.colorbar(cs, ax=ax, shrink=0.75)
+        cbar=plt.colorbar(cs, ax=ax, ticks=self.cblevs, shrink=0.75)
        #cbar=plt.colorbar(cs, ticks=self.cblevs, shrink=0.75)
        #cbar=plt.colorbar(cs, ax=ax, pad=self.pad,
        #                  ticks=self.cblevs)
@@ -289,21 +317,26 @@ class GeneratePlot():
 #--------------------------------------------------------------------------------
 if __name__== '__main__':
   debug = 1
+  showall = 0
 
   topdir = '/work2/noaa/gsienkf/weihuang/production/run/sondes'
-  frtdir = '%s/run_80.40t1n_36p' %(topdir)
-  snddir = '%s/1_rr_observer_whole_solver.run_81.36t9n' %(topdir)
+ #frtdir = '%s/run_80.40t1n_36p' %(topdir)
+  frtdir = '%s/observer.run_80.40t1n_36p' %(topdir)
+ #snddir = '%s/1_rr_observer_whole_solver.run_81.36t9n' %(topdir)
+  snddir = '%s/new.1_rr_observer_whole_solver.run_81.36t9n' %(topdir)
 
   frtfile = '%s/observer/sondes_tv_obs_2020010112_0000.nc4' %(frtdir)
   sndfile = '%s/observer/sondes_tv_obs_2020010112_0000.nc4' %(snddir)
 
-  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
+  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=', 'showall=',
                                                 'sndfile=', 'frtfile='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
     elif o in ('--output'):
       output = int(a)
+    elif o in ('--showall'):
+      showall = int(a)
     elif o in ('--sndfile'):
       sndfile = a
     elif o in ('--frtfile'):
@@ -311,5 +344,5 @@ if __name__== '__main__':
     else:
       assert False, 'unhandled option'
 
-  c2f = Compare2Files(flnm1 = frtfile, flnm2 = sndfile)
+  c2f = Compare2Files(debug=debug, flnm1=frtfile, flnm2=sndfile, showall=showall)
 

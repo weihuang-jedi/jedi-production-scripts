@@ -16,14 +16,13 @@
 
  SYMDH=${SYEAR}${SMONTH}${SDAY}${SHOUR}
 
- top_dir=/work2/noaa/gsienkf/weihuang/gsi/old.gsi_C96_lgetkf_sondesonly
-#src_dir=/work2/noaa/gsienkf/weihuang/gsi/C96_lgetkf_sondesonly/${SYMDH}
+ top_dir=/work2/noaa/da/weihuang/cycling/jedi_C96_lgetkf_sondesonly
  src_dir=${top_dir}/${SYMDH}
  tar_dir=/work2/noaa/gsienkf/weihuang/production/run/Data/ens
 
  mkdir -p ${tar_dir}
  cd ${tar_dir}
- rm -f mem* coupler.res
+ rm -f coupler.res
 
  SMINUTE=0
  EMINUTE=0
