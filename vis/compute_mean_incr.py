@@ -5,60 +5,49 @@ import netCDF4 as nc4
 
 #=========================================================================
 class ComputeMeanIncrements():
-  def __init__(self, debug=0, workdir=None, datestr=None, outfile=None):
+  def __init__(self, debug=0, totalmembers=80):
     self.debug = debug
-    self.workdir = workdir
-    self.datestr = datestr
-    self.outfile = outfile
-    self.totalmembers = 80
+    self.totalmembers = totalmembers
 
     print('debug: ', debug)
-    print('workdir: ', workdir)
-    print('datestr: ', datestr)
-    print('outfile: ', outfile)
 
    #Base variables
     self.baselist = ['lon', 'lat', 'lev', 'ilev', 'hyai', 'hybi']
 
+  def process(self, name='GSI', workdir=None, outfile=None):
+    print('workdir: ', workdir)
+    print('outfile: ', outfile)
+
    #open all members increments.
-    self.filelist = []
-    self.ncarray = []
+    filelist = []
+    ncarray = []
     for n in range(self.totalmembers):
-      filename = '%s/%s/mem%3.3d/INPUT/fv3_increment6.nc' %(workdir, datestr, n+1)
+      filename = '%s/mem%3.3d/INPUT/fv3_increment6.nc' %(workdir, n+1)
       if(os.path.exists(filename)):
         print('Processing No %d: %s' %(n, filename))
         ncf = nc4.Dataset(filename, 'r')
-        self.filelist.append(filename)
-        self.ncarray.append(ncf)
+        filelist.append(filename)
+        ncarray.append(ncf)
       else:
         print('increment file: %s does not exist. Stop' %(filename))
         sys.exit(-1)
 
-    self.ncout = nc4.Dataset(outfile, 'w')
-
-    self.process()
-
- #def __del__(self):
- #  self.ncout.close()
- #  for ncf in self.ncarray:
- #    ncf.close()
-  
-  def process(self):
+    ncout = nc4.Dataset(outfile, 'w')
    #copy global attributes all at once via dictionary
-    self.ncout.source = 'GSI increments mean from: %s, date: %s' %(self.workdir, self.datestr)
-    self.ncout.comment = 'Calculated for %d members' %(self.totalmembers)
+    ncout.source = '%s increments mean from: %s' %(name, workdir)
+    ncout.comment = 'Calculated for %d members' %(self.totalmembers)
 
-    ncf = self.ncarray[0]
+    ncf = ncarray[0]
    #print('ncf: ', ncf)
    #copy dimensions
     for name, dimension in ncf.dimensions.items():
      #print('name: ', name)
      #print('dimension: ', dimension)
-     #self.ncout.createDimension(name, (len(dimension) if not dimension.isunlimited() else None))
+     #ncout.createDimension(name, (len(dimension) if not dimension.isunlimited() else None))
       if dimension.isunlimited():
-        self.ncout.createDimension(name, None)
+        ncout.createDimension(name, None)
       else:
-        self.ncout.createDimension(name, len(dimension))
+        ncout.createDimension(name, len(dimension))
 
     self.vardict = {}
    #copy all var in baselist
@@ -66,61 +55,66 @@ class ComputeMeanIncrements():
      #print('name: ', name)
      #print('variable: ', variable)
       if name in self.baselist:
-        x = self.ncout.createVariable(name, variable.datatype, variable.dimensions)
-        self.ncout.variables[name][:] = ncf.variables[name][:]
+        x = ncout.createVariable(name, variable.datatype, variable.dimensions)
+        ncout.variables[name][:] = ncf.variables[name][:]
        #copy variable attributes all at once via dictionary
-        self.ncout.variables[name].setncatts(ncf.variables[name].__dict__)
+       #ncout.variables[name].setncatts(ncf.variables[name].__dict__)
       else:
         var = ncf.variables[name][:,:,:]
         self.vardict[name] = var
 
     print('self.vardict.keys(): ', self.vardict.keys())
-    for n in range(1, len(self.ncarray)):
-      ncf = self.ncarray[n]
+    for n in range(1, len(ncarray)):
+      ncf = ncarray[n]
       for name in self.vardict.keys():
         var = ncf.variables[name][:,:,:]
         self.vardict[name] += var
 
-    ncf = self.ncarray[0]
+    ncf = ncarray[0]
     for name, variable in ncf.variables.items():
       print('working on: name: ', name)
       if name in self.baselist:
         continue
       else:
-        x = self.ncout.createVariable(name, variable.datatype, variable.dimensions)
+        x = ncout.createVariable(name, variable.datatype, variable.dimensions)
         var = self.vardict[name] / self.totalmembers
-        self.ncout.variables[name][:,:,:] = var
+        ncout.variables[name][:,:,:] = var
        #copy variable attributes all at once via dictionary
-        self.ncout.variables[name].setncatts(ncf.variables[name].__dict__)
+       #ncout.variables[name].setncatts(ncf.variables[name].__dict__)
 
-    self.ncout.close()
-    for ncf in self.ncarray:
+    ncout.close()
+    for ncf in ncarray:
       ncf.close()
 
 #--------------------------------------------------------------------------------
 if __name__== '__main__':
   debug = 1
 
-  workdir = '/work2/noaa/gsienkf/weihuang/gsi/gsi_C96_lgetkf_sondesonly'
- #datestr = '2020010200'
-  datestr = '2020010600'
-  outfile = 'mean_incr.nc4'
+ #topdir = '/work2/noaa/gsienkf/weihuang/gsi'
+  topdir = '/work2/noaa/da/weihuang/cycling'
+  datestr = '2020010112'
+  casename = 'jedi'
 
  #-----------------------------------------------------------------------------------------
-  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'workdir=',
-                                                'datestr=', 'outfile='])
+  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'topdir=',
+                            'datestr=', 'casename='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
-    elif o in ('--workdir'):
-      workdir = a
+    elif o in ('--topdir'):
+      topdir = a
     elif o in ('--datestr'):
       datestr = a
-    elif o in ('--outfile'):
-      outfile = a
+    elif o in ('--casename'):
+      casename = a
     else:
       assert False, 'unhandled option'
 
  #-----------------------------------------------------------------------------------------
-  cmi = ComputeMeanIncrements(debug=debug, workdir=workdir, datestr=datestr, outfile=outfile)
+  workdir = '%s/%s_C96_lgetkf_sondesonly/%s' %(topdir, casename, datestr)
+  outfile = '%s_mean_incr_%s.nc4' %(casename, datestr)
+
+ #-----------------------------------------------------------------------------------------
+  cmi = ComputeMeanIncrements(debug=debug)
+  cmi.process(name=casename, workdir=workdir, outfile=outfile)
 

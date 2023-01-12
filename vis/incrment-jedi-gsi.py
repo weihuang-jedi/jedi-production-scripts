@@ -16,6 +16,12 @@ import cartopy.mpl.ticker as cticker
 
 import netCDF4 as nc4
 
+from compute_mean_incr import ComputeMeanIncrements
+
+import tkinter
+import matplotlib
+matplotlib.use('TkAgg')
+
 #=========================================================================
 class GeneratePlot():
   def __init__(self, debug=0, output=0):
@@ -24,7 +30,7 @@ class GeneratePlot():
 
     self.set_default()
 
-  def plot(self, lons, lats, data=[]):
+  def plot(self, lons, lats, data=[], datestr=' ', lbl1='GSI', lbl2='JEDI'):
    #ax.coastlines(resolution='110m')
    #ax.gridlines()
 
@@ -37,6 +43,10 @@ class GeneratePlot():
     fig, axs = plt.subplots(nrows=nrows,ncols=ncols,
                             subplot_kw=dict(projection=proj),
                             figsize=(11,8.5))
+
+    lbl = '%s-%s' %(lbl2, lbl1)
+    lblist = [lbl1, lbl2, lbl)
+    self.set_runname(self, runname=lblist)
  
    #axs is a 2 dimensional array of `GeoAxes`. Flatten it into a 1-D array
     axs=axs.flatten()
@@ -49,8 +59,8 @@ class GeneratePlot():
      #print('Plot No. ', i)
      #print('\tpvar.shape = ', pvar.shape)
 
-     #vmin = np.min(pvar)
-     #vmax = np.max(pvar)
+      vmin = np.min(pvar)
+      vmax = np.max(pvar)
 
      #if((vmax - vmin) > 1.0e-5):
      #  self.clevs, self.cblevs = get_plot_levels(pvar)
@@ -66,7 +76,9 @@ class GeneratePlot():
       axs[i].coastlines(resolution='auto', color='k')
       axs[i].gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
-      axs[i].set_title(self.runname[i])
+      title = '%s %s Min: %6.2f, Max: %6.2f' %(datestr, self.runname[i], vmin, vmax)
+      axs[i].set_title(title)
+     #axs[i].set_title(self.runname[i])
 
    #Adjust the location of the subplots on the page to make room for the colorbar
     fig.subplots_adjust(bottom=0.1, top=0.9, left=0.05, right=0.8,
@@ -124,6 +136,9 @@ class GeneratePlot():
 
   def set_label(self, label='Unit (C)'):
     self.label = label
+
+  def set_runname(self, runname=['GSI', 'JEDI', 'JEDI - GSI']):
+    self.runname = runname
 
   def set_title(self, title='Temperature Increment'):
     self.title = title
@@ -184,35 +199,57 @@ def get_plot_levels(var):
 if __name__== '__main__':
   debug = 1
   output = 0
-  datestr = '2020010200'
-  gsidir = '/work2/noaa/gsienkf/weihuang/gsi/gsi_C96_lgetkf_sondesonly'
-  jedidir = '/work2/noaa/gsienkf/weihuang/gsi/jedi_C96_lgetkf_sondesonly'
+  topdir = '/work2/noaa/da/weihuang/cycling'
+  datestr = '2020010112'
+  basename = 'med.jedi'
+  casename = 'jedi'
 
-  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
-                                                'jedifile=', 'gsifile='])
+  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=', 'datestr=',
+                                                'topdir=', 'basename=', 'casename='])
   for o, a in opts:
+    print('o: %s, a: %s' %(o, a))
     if o in ('--debug'):
       debug = int(a)
     elif o in ('--output'):
       output = int(a)
-    elif o in ('--jedifile'):
-      jedifile = a
-    elif o in ('--gsifile'):
-      gsifile = a
+    elif o in ('--datestr'):
+      datestr = a
+    elif o in ('--topdir'):
+      topdir = a
+    elif o in ('--basename'):
+      basename = a
+    elif o in ('--casename'):
+      casename = a
     else:
       assert False, 'unhandled option'
 
 #-----------------------------------------------------------------------------------------
   gp = GeneratePlot(debug=debug, output=output)
 
-  gsifile = './gsi_2020010200_mean_incr.nc4'
-  jedifile = './jedi_2020010200_mean_incr.nc4'
+  basefile = './%s_mean_incr_%s.nc4' %(basename, datestr)
+  casefile = './%s_mean_incr_%s.nc4' %(casename, datestr)
 
-  ncgsi = nc4.Dataset(gsifile, 'r')
-  ncjedi = nc4.Dataset(jedifile, 'r')
+  cmi = ComputeMeanIncrements(debug=debug)
 
-  lats = ncjedi.variables['lat'][:]
-  lons = ncjedi.variables['lon'][:]
+  if(os.path.exists(basefile)):
+    print('Base file: ', basefile)
+  else:
+    workdir = '%s/%s_C96_lgetkf_sondesonly/%s' %(topdir, basename, datestr)
+    outfile = '%s_mean_incr_%s.nc4' %(basename, datestr)
+    cmi.process(name=casename, workdir=workdir, outfile=outfile)
+
+  if(os.path.exists(casefile)):
+    print('Case file: ', casefile)
+  else:
+    workdir = '%s/%s_C96_lgetkf_sondesonly/%s' %(topdir, casename, datestr)
+    outfile = '%s_mean_incr_%s.nc4' %(casename, datestr)
+    cmi.process(name=casename, workdir=workdir, outfile=outfile)
+
+  ncbase = nc4.Dataset(basefile, 'r')
+  nccase = nc4.Dataset(casefile, 'r')
+
+  lats = nccase.variables['lat'][:]
+  lons = nccase.variables['lon'][:]
 
 #-----------------------------------------------------------------------------------------
   clevs = np.arange(-1.0, 1.01, 0.01)
@@ -229,12 +266,12 @@ if __name__== '__main__':
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(varlist)):
-    jedivar = ncjedi.variables[varlist[n]][:, :, :]
-    gsivar = ncgsi.variables[varlist[n]][:, :, :]
+    casevar = nccase.variables[varlist[n]][:, :, :]
+    basevar = ncbase.variables[varlist[n]][:, :, :]
 
-    nlev, nlat, nlon = jedivar.shape
-   #print('jedivar.shape = ', jedivar.shape)
-   #print('gsivar.shape = ', gsivar.shape)
+    nlev, nlat, nlon = casevar.shape
+   #print('casevar.shape = ', casevar.shape)
+   #print('basevar.shape = ', basevar.shape)
 
     if('T_inc' == varlist[n]):
       clevs = 2.0*np.arange(-1.0, 1.01, 0.01)
@@ -262,9 +299,9 @@ if __name__== '__main__':
     gp.set_cblevs(cblevs=cblevs)
     gp.set_label(unitlist[n])
 
-    for lev in range(5, nlev, 50):
-      v0 = gsivar[lev,:,:]
-      v1 = jedivar[lev,:,:]
+    for lev in range(5, nlev, 10):
+      v0 = basevar[lev,:,:]
+      v1 = casevar[lev,:,:]
       v2 = v1 - v0
 
       data = [v0, v1, v2]
@@ -281,12 +318,12 @@ if __name__== '__main__':
       print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
       print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
 
-      imagename = '%s_lev_%3.3d.png' %(varlist[n], lev)
+      imagename = '%s_%s_lev_%3.3d.png' %(varlist[n], datestr, lev)
       gp.set_imagename(imagename)
 
-      gp.plot(lons, lats, data=data)
+      gp.plot(lons, lats, data=data, datestr=datestr, lbl1=basename, lbl2=casename)
 
 #-----------------------------------------------------------------------------------------
-  ncjedi.close()
-  ncgsi.close()
+  nccase.close()
+  ncbase.close()
 

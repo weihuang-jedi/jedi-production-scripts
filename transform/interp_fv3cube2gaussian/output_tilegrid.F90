@@ -110,7 +110,7 @@ subroutine output_var_attr(ncid, dimid_nx, dimid_ny)
 !--Field 1, lon  
    call nc_putAttr(ncid, nd, dimids, NF90_REAL, &
                    "lon", &
-                   "Lontitude Coordinate", NF90_REAL, &
+                   "Lontitude Coordinate", &
                    "degree_east", &
                    "ny nx", &
                    missing_real)

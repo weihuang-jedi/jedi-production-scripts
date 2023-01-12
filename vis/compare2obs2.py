@@ -101,6 +101,9 @@ obstype = 'ioda_v2_data'
 datestr = '2020010112'
 obslist = ['sondes_tsen', 'sondes_tv', 'sondes_uv', 'sondes_q']
 
+dir1 = '/work2/noaa/da/weihuang/cycling/jedi_C96_lgetkf_sondesonly/2020010112/observer'
+dir2 = '/work2/noaa/gsienkf/weihuang/production/run/sondes/observer.run_80.40t1n_36p/obsout'
+
 #-----------------------------------------------------------------------------------------
 opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'run_dir=', 'datestr='])
 
@@ -116,8 +119,8 @@ for o, a in opts:
 
 #-----------------------------------------------------------------------------------------
 for obs in obslist:
-  f1 = '%s/%s/%s/%s/%s_obs_%s.nc4' %(run_dir, runtype, datestr, obstype, obs, datestr)
-  f2 = '%s/new.%s/%s/%s/%s_obs_%s.nc4' %(run_dir, runtype, datestr, obstype, obs, datestr)
+  f1 = '%s/%s_obs_%s_0000.nc4' %(dir1, obs, datestr)
+  f2 = '%s/%s_obs_%s_0000.nc4' %(dir2, obs, datestr)
   print('f1: ', f1)
   print('f2: ', f2)
 

@@ -197,13 +197,13 @@ subroutine create_coord4gaussian(nt, time, gaussian, flnm)
    dimids(1) = gaussian%dimid_ilev
 !--Field hyai
    call nc_putAttr(gaussian%ncid, nd, dimids, NF90_REAL, &
-                   'hyai', & 'Hydro A Index', 'Pa', &
+                   'hyai', 'Hydro A Index', 'Pa', &
                    "Full Level", missing_real)
 
    dimids(1) = gaussian%dimid_ilev
 !--Field hybi
    call nc_putAttr(gaussian%ncid, nd, dimids, NF90_REAL, &
-                   'hybi', & 'Hydro B Index', 'unitless', &
+                   'hybi', 'Hydro B Index', 'unitless', &
                    "Full Level", missing_real)
 
 !  dimids(1) = gaussian%dimid_time

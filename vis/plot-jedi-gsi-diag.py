@@ -139,7 +139,7 @@ def read_stats(filename):
   return mystats
 
 #=========================================================================
-def plot_lines(plevs, frtrms, sndrms, header='temp', output=0):
+def plot_lines(plevs, frtrms, sndrms, header='temp', output=0, lbl1='GSI', lbl2='JEDI'):
   try:
     plt.close('all')
     plt.clf()
@@ -236,7 +236,7 @@ def plot_lines(plevs, frtrms, sndrms, header='temp', output=0):
   bs.set_ylabel('Pressure (hPa)', labelpad=20)
 
  #labels = ['GSI', 'JEDI', 'JEDI - GSI']
-  labels = ['GSI', 'JEDI']
+  labels = [lbl1, lbl2]
 
  #Create the legend
   fig.legend(ax, labels=labels,
@@ -581,7 +581,7 @@ class Plot_JEDI_GSI_Diag():
    #  #plt.xlim(2.2,3.4)
    #Wind rms min: 3.0864446.2, max:   6.84
    #plt.xlim(3.25,5.5)
-    plt.xlim(3.25,5.5)
+    plt.xlim(3.25,5.75)
     plt.ylim(self.levbot,self.levtop)
     plt.grid(True)
 
@@ -608,7 +608,7 @@ class Plot_JEDI_GSI_Diag():
    #plt.xlim(0.75,2.25)       
    #Temp rms min: 1.2050896.2, max:   4.07
    #plt.xlim(1.0,2.75)       
-    plt.xlim(0.75,2.00)       
+    plt.xlim(0.75,2.50)       
     plt.ylim(self.levbot,self.levtop)
     plt.grid(True)
     plt.legend(loc=0)
@@ -677,12 +677,12 @@ if __name__== '__main__':
  #print('len(frtrms) = ', len(frtrms))
  #print('frtrms = ', frtrms)
 
-  plot_lines(p, frtrms, sndrms, header='temp', output=output)
+  plot_lines(p, frtrms, sndrms, header='temp', output=output, lbl1=lbl1, lbl2=lbl2)
 
   frtrms = frt_stats['rms_wind']
   sndrms = snd_stats['rms_wind']
 
-  plot_lines(p, frtrms, sndrms, header='wind', output=output)
+  plot_lines(p, frtrms, sndrms, header='wind', output=output, lbl1=lbl1, lbl2=lbl2)
 
   frtrms = frt_stats['rms_humid']
   sndrms = snd_stats['rms_humid']
@@ -693,7 +693,7 @@ if __name__== '__main__':
     if(frtrms[n] < 0.0):
       frtrms[n] = 0.0
 
-  plot_lines(p, frtrms, sndrms, header='humidity', output=output)
+  plot_lines(p, frtrms, sndrms, header='humidity', output=output, lbl1=lbl1, lbl2=lbl2)
 
 #-----------------------------------------------------------------------------------------
   frtfile = '%s.nc' %(fnam)
