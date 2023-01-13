@@ -181,6 +181,9 @@ class Plot_JEDI_GSI_Diag():
     wind_fits2mean = wind_fits2.mean(axis=0)
     wind_fits_pval = ttest(wind_fits1,wind_fits2,inflate=True)
     sig = wind_fits_pval >= self.sigthresh
+
+    print('Wind rms min: %f6.2, max: %6.2f' %(np.min(wind_fits1mean), np.max(wind_fits1mean)))
+
     plt.plot(wind_fits1mean,levels,color=color1,linewidth=linewidth1,marker='o',label=lbl1)
     plt.plot(wind_fits2mean,levels,color=color2,linewidth=linewidth2,marker='o',label=lbl2)
     for n in range(len(levels)):
@@ -190,12 +193,13 @@ class Plot_JEDI_GSI_Diag():
     plt.title('%s: %s' % (obtypes+' V',region))
     plt.xlabel('RMS (mps)')
     plt.axis('tight')
-    if int(dates[1][4:6]) > 10 or int(dates[2][4:6]) < 4:
-      plt.xlim(2.5,4.0)
-    else:
-      plt.xlim(2.2,3.4)
-      #plt.xlim(2.2,3.4)
-      #plt.xlim(3.0,5.5)
+   #if int(dates[1][4:6]) > 10 or int(dates[2][4:6]) < 4:
+   #  plt.xlim(2.5,4.0)
+   #else:
+   #  plt.xlim(2.2,3.4)
+   #  #plt.xlim(2.2,3.4)
+   #Wind rms min: 3.0864446.2, max:   6.84
+    plt.xlim(3.25,5.5)
     plt.ylim(self.levbot,self.levtop)
     plt.grid(True)
 
@@ -207,6 +211,9 @@ class Plot_JEDI_GSI_Diag():
     temp_fits2mean = np.sqrt(temp_fits2).mean(axis=0) 
     temp_fits_pval = ttest(temp_fits1,temp_fits2,inflate=True)
     sig = temp_fits_pval >= self.sigthresh
+
+    print('Temp rms min: %f6.2, max: %6.2f' %(np.min(temp_fits1mean), np.max(temp_fits1mean)))
+
     plt.plot(temp_fits1mean,levels,color=color1,linewidth=linewidth1,marker='o',label=lbl1)
     plt.plot(temp_fits2mean,levels,color=color2,linewidth=linewidth2,marker='o',label=lbl2)
     for n in range(len(levels)):
@@ -215,8 +222,10 @@ class Plot_JEDI_GSI_Diag():
     plt.xlabel('RMS (K)')
     plt.title('%s: %s' % (obtypes+' T',region))
     plt.axis('tight')
-    plt.xlim(0.5,1.4)
-    plt.xlim(0.75,2.25)       
+   #plt.xlim(0.5,1.4)
+   #plt.xlim(0.75,2.25)       
+   #Temp rms min: 1.2050896.2, max:   4.07
+    plt.xlim(1.0,2.75)       
     plt.ylim(self.levbot,self.levtop)
     plt.grid(True)
     plt.legend(loc=0)
@@ -232,7 +241,7 @@ if __name__== '__main__':
   debug = 1
   output = 0
   title = 'JEDI and GSI'
-  region = 'All Insitu'
+  region = 'Hem'
   fexp = 'gsi_stats'
   sexp = 'jedi_stats'
   lbl1 = 'GSI'

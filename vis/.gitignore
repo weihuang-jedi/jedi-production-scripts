@@ -8,3 +8,7 @@ log.*
 *.png
 *.nc
 *.nc4
+diff.*
+*.diff
+*.log
+obs.diff*

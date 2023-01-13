@@ -7,11 +7,13 @@ import netCDF4 as nc4
 if __name__== '__main__':
   debug = 1
   output = 0
-  frtdir = '/work2/noaa/da/weihuang/cycling/new.jedi_C96_lgetkf_sondesonly/2020010112'
-  snddir = '/work2/noaa/da/weihuang/cycling/jedi_C96_lgetkf_sondesonly/2020010112'
+  frtdir = '/work2/noaa/da/weihuang/cycling/med.jedi_C96_lgetkf_sondesonly'
+  snddir = '/work2/noaa/da/weihuang/cycling/jedi_C96_lgetkf_sondesonly'
 
-  frtfile = '%s/mem001/INPUT/fv3_increment6.nc' %(frtdir)
-  sndfile = '%s/mem001/INPUT/fv3_increment6.nc' %(snddir)
+  datestr = '2020010112'
+
+  frtfile = '%s/%s/sanl_2020010112_fhr06_ensmean' %(frtdir, datestr)
+  sndfile = '%s/%s/sanl_2020010112_fhr06_ensmean' %(snddir, datestr)
 
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
                                                 'sndfile=', 'frtfile='])
@@ -32,26 +34,21 @@ if __name__== '__main__':
   ncsnd = nc4.Dataset(sndfile, 'r')
 
 #-----------------------------------------------------------------------------------------
- #varlist = ['tmp', 'ugrd', 'vgrd', 'delp', 'spfh', 'o3mr', 'delz']
- #unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)', 'Unit (Pa)',
- #            'Unit (kg/kg)', 'Unit (ppm)', 'Unit (m)']
-  varlist = ['T_inc', 'u_inc', 'v_inc', 'delp_inc', 'sphum_inc', 'o3mr_inc', 'delz_inc']
- #varlist = ['T', 'ua', 'va', 'delp', 'sphum', 'o3mr', 'DZ']
+  first_varlist = ['tmp', 'ugrd', 'vgrd', 'dpres', 'delz', 'spfh', 'o3mr']
+  second_varlist = first_varlist
   unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)', 'Unit (Pa)',
               'Unit (kg/kg)', 'Unit (kg/kg)', 'Unit (m)']
 
 #-----------------------------------------------------------------------------------------
-  for n in range(len(varlist)):
-    sndvar = ncsnd.variables[varlist[n]][:, :, :]
-    frtvar = ncfrt.variables[varlist[n]][:, :, :]
-   #sndvar = ncsnd.variables[varlist[n]][0, :, :, :]
-   #frtvar = ncfrt.variables[varlist[n]][0, :, :, :]
+  for n in range(len(first_varlist)):
+    frtvar = ncfrt.variables[first_varlist[n]][:, :, :]
+    sndvar = ncsnd.variables[second_varlist[n]][:, :, :]
 
-   #print('sndvar.shape = ', sndvar.shape)
    #print('frtvar.shape = ', frtvar.shape)
+   #print('sndvar.shape = ', sndvar.shape)
    #nlev, nlat, nlon = sndvar.shape
 
-    print('Var %d: %s' %(n, varlist[n]))
+    print('Var %d: %s' %(n, second_varlist[n]))
 
     difvar = sndvar - frtvar
 

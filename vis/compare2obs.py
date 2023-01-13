@@ -23,11 +23,11 @@ def comp_rootvar(nc1, nc2):
       continue
 
     v2 = nc2.variables[name][:]
-    dv = v2 - v1
+   #dv = v2 - v1
 
     print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
     print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
-    print('\tdv.max: %f, dv.min: %f' %(np.max(dv), np.min(dv)))
+   #print('\tdv.max: %f, dv.min: %f' %(np.max(dv), np.min(dv)))
 
 #-----------------------------------------------------------------------------------------
 def comp_var_in_group(ncg1, ncg2):
@@ -51,11 +51,11 @@ def comp_var_in_group(ncg1, ncg2):
       continue
    #if(v2.dtype.type is np.str):
    #  continue
-    dv = v2 - v1
+   #dv = v2 - v1
 
     print('\t\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
     print('\t\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
-    print('\t\tdv.max: %f, dv.min: %f' %(np.max(dv), np.min(dv)))
+   #print('\t\tdv.max: %f, dv.min: %f' %(np.max(dv), np.min(dv)))
 
 #-----------------------------------------------------------------------------------------
 def process(f1, f2):
@@ -96,13 +96,15 @@ def process(f1, f2):
 debug = 1
 
 run_dir = '/work2/noaa/da/weihuang/cycling'
-runtype = 'jedi_C96_lgetkf_sondesonly'
-obstype = 'ioda_v2_data'
+runtype = 'C96_lgetkf_sondesonly'
+obstype = 'observer'
 datestr = '2020010112'
-obslist = ['sondes_tsen', 'sondes_tv', 'sondes_uv', 'sondes_q']
+basename = 'med.jedi'
+casename = 'jedi'
 
 #-----------------------------------------------------------------------------------------
-opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'run_dir=', 'datestr='])
+opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'run_dir=', 'datestr=', 'runtype=',
+                                              'obstype=', 'basename=', 'casename='])
 
 for o, a in opts:
   if o in ('--debug'):
@@ -111,13 +113,28 @@ for o, a in opts:
     run_dir = a
   elif o in ('--datestr'):
     datestr = a
+  elif o in ('--runtype'):
+    runtype = a
+  elif o in ('--obstype'):
+    obstype = a
+  elif o in ('--basename'):
+    basename = a
+  elif o in ('--casename'):
+    casename = a
   else:
     assert False, 'unhandled option'
 
 #-----------------------------------------------------------------------------------------
+obslist = ['sondes_tsen', 'sondes_tv', 'sondes_uv', 'sondes_q']
+basedir = '%s/%s_%s/%s/obsout' %(run_dir, basename, runtype, datestr)
+casedir = '%s/%s_%s/%s/observer' %(run_dir, casename, runtype, datestr)
 for obs in obslist:
-  f1 = '%s/%s/%s/%s/%s_obs_%s.nc4' %(run_dir, runtype, datestr, obstype, obs, datestr)
-  f2 = '%s/new.%s/%s/%s/%s_obs_%s.nc4' %(run_dir, runtype, datestr, obstype, obs, datestr)
+  if(obstype in ['observer', 'solver']):
+    f1 = '%s/%s_obs_%s_0000.nc4' %(basedir, obs, datestr)
+    f2 = '%s/%s_obs_%s_0000.nc4' %(casedir, obs, datestr)
+  else:
+    f1 = '%s/%s_obs_%s.nc4' %(basedir, obs, datestr)
+    f2 = '%s/%s_obs_%s.nc4' %(casedir, obs, datestr)
   print('f1: ', f1)
   print('f2: ', f2)
 

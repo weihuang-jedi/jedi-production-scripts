@@ -522,7 +522,7 @@ class CompareFilterGSIQC():
      #print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
 
       imagename = 'diff_%s_%s.png' %(prefix, varlist[n])
-      self.pjgd.set_imagename(imagename)
+      pjgd.set_imagename(imagename)
 
       self.pjgd.plot_contour(times[:ptime], plevs, data=data)
 

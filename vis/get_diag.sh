@@ -37,6 +37,7 @@
 	--output=1 >> obs_count_${flag}.csv
 
    dirname=${case2}-${case1}
+   rm -rf ${dirname}
    mkdir -p ${dirname}
    mv -f obs_count_${flag}.csv ${dirname}/.
    for fl in diag_omf_rmshumid diag_omf_rmstemp diag_omf_rmswind humidity_rms temp_rms wind_rms
@@ -53,32 +54,19 @@
    mv -f *.png ${dirname}/.
  }
 
-#edate=2020011600
- edate=2020011818
+ edate=2020010418
+#edate=2020012218
 
 #plot_stats 2020010118 ${edate} 12 at_6h  gsi jedi
 #plot_stats 2020010112 ${edate} 12 at_12h gsi jedi
 #plot_stats 2020010112 ${edate} 6  all    gsi jedi
 
-#plot_stats 2020010118 ${edate} 12 at_6h  jedi orig.jedi
-#plot_stats 2020010112 ${edate} 12 at_12h jedi orig.jedi
-#plot_stats 2020010112 ${edate} 6  all    jedi orig.jedi
-
-#plot_stats 2020010118 ${edate} 12 at_6h  orig.gsi jedi
-#plot_stats 2020010112 ${edate} 12 at_12h orig.gsi jedi
-#plot_stats 2020010112 ${edate} 6  all    orig.gsi jedi
-
-#plot_stats 2020010118 ${edate} 12 at_6h  orig.gsi orig.jedi
-#plot_stats 2020010112 ${edate} 12 at_12h orig.gsi orig.jedi
-#plot_stats 2020010112 ${edate} 6  all    orig.gsi orig.jedi
-
-#plot_stats 2020010118 ${edate} 12 at_6h  orig.gsi gsi
-#plot_stats 2020010112 ${edate} 12 at_12h orig.gsi gsi
-#plot_stats 2020010112 ${edate} 6  all    orig.gsi gsi
-
+ tar cvf ~/jg.tar plot-jedi-gsi-diag.py get_diag.sh
 #------------------------------------------------------------------------------
- firstlist=(gsi   jedi      orig.gsi orig.gsi  orig.gsi)
- secondlist=(jedi orig.jedi jedi     orig.jedi gsi)
+#firstlist=(orig.jedi  orig.gsi new.gsi  orig.gsi  new.gsi   orig.gsi)
+#secondlist=(jedi      jedi     jedi     orig.jedi orig.jedi new.gsi)
+ firstlist=(orig.jedi  orig.gsi gsi  orig.gsi  gsi   orig.gsi)
+ secondlist=(jedi      jedi     jedi orig.jedi orig.jedi gsi)
  for j in ${!firstlist[@]}
  do
    first=${firstlist[$j]}
@@ -88,6 +76,8 @@
    plot_stats 2020010118 ${edate} 12 at_6h  ${first} ${second}
    plot_stats 2020010112 ${edate} 12 at_12h ${first} ${second}
    plot_stats 2020010112 ${edate} 6  all    ${first} ${second}
+
+   tar uvf ~/jg.tar ${second}-${first}
  done
 
  exit 0

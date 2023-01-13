@@ -6,12 +6,6 @@ import netCDF4 as nc4
 import time
 import numpy as np
 
-from genplot import GeneratePlot as genplot
-
-import tkinter
-import matplotlib
-matplotlib.use('TkAgg')
-
 #-----------------------------------------------------------------------------------------
 class Compare2Obs():
   def __init__(self, debug=0):
@@ -69,25 +63,15 @@ class Compare2Obs():
         print('\t\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
         print('\t\tdv.max: %f, dv.min: %f' %(np.max(dv), np.min(dv)))
 
-        self.diffinfo[self.grpname] = {}
-        self.diffinfo[self.grpname][name] = dv
-
-       #imgname = '%s_%s.png' %(self.obstype, self.datestr)
-       #title = '%s %s' %(self.obstype, self.datestr)
-
-       #self.gp.set_imagename(imgname)
-       #self.gp.set_title(title)
-       #self.gp.obsonly(self.lon1, self.lat1, dv, title=title)
-
-       #for i in range(len(v2)):
-       #  if(np.absolute(v2[i] - v1[idx[i]]) > maxdelt):
-       #    linfo = 'No. %d: lat1: %f, lon1: %f' %(i, self.lat1[i], self.lon1[i])
-       #    linfo = '%s: lat2: %f, lon2: %f' %(linfo, self.lat2[i], self.lon2[i])
-       #    linfo = '%s: v2: %f, v1: %f' %(linfo, v2[i], v1[idx[i]])
-       #    print(linfo)
+        for i in range(len(v2)):
+          if(np.absolute(v2[i] - v1[idx[i]]) > maxdelt):
+            linfo = 'No. %d: lat1: %f, lon1: %f' %(i, self.lat1[i], self.lon1[i])
+            linfo = '%s: lat2: %f, lon2: %f' %(linfo, self.lat2[i], self.lon2[i])
+            linfo = '%s: v2: %f, v1: %f' %(linfo, v2[i], v1[idx[i]])
+            print(linfo)
 
 #-----------------------------------------------------------------------------------------
-  def cal_sorted_index(self, lat1, lon1, lat2, lon2):
+  def get_sorted_index(self, lat1, lon1, lat2, lon2):
     indx = []
     locn = [i for i in range(len(lat1))]
     maxdelt = 1.0e-6
@@ -108,7 +92,7 @@ class Compare2Obs():
     return indx
 
 #-----------------------------------------------------------------------------------------
-  def process(self, f1, f2, obstype, datestr):
+  def process(self, f1, f2):
     if(os.path.exists(f1)):
       nc1 = nc4.Dataset(f1, 'r')
     else:
@@ -120,30 +104,24 @@ class Compare2Obs():
     else:
       print('f2: %s does not exist.' %(f2))
       sys.exit(-1)
-
-    self.obstype = obstype
-    self.datestr = datestr
-
+  
     self.lat1 = nc1.groups['MetaData'].variables['latitude']
     self.lon1 = nc1.groups['MetaData'].variables['longitude']
   
     self.lat2 = nc2.groups['MetaData'].variables['latitude']
     self.lon2 = nc2.groups['MetaData'].variables['longitude']
   
-    self.idx = self.cal_sorted_index(self.lat1, self.lon1, self.lat2, self.lon2)
+    self.idx = self.get_sorted_index(self.lat1, self.lon1, self.lat2, self.lon2)
   
    #print('list(nc1.variables): ', list(nc1.variables))
    #print('list(nc1.groups): ', list(nc1.groups))
   
     self.comp_rootvar(nc1, nc2)
-
-    self.diffinfo = {}
   
     g1list = list(nc1.groups)
     g2list = list(nc2.groups)
   
     for name in g1list:
-      self.grpname = name
       print('group name: ', name)
       if(name not in g2list):
         print('group name: %s is not in g2list' %(name))
@@ -151,13 +129,10 @@ class Compare2Obs():
       ncg1 = nc1.groups[name]
       ncg2 = nc2.groups[name]
       self.comp_var_in_group(ncg1, ncg2, self.idx)
-
-    return self.lat1, self.lon1, self.diffinfo
   
 #-----------------------------------------------------------------------------------------
 if __name__ == '__main__':
   debug = 1
-  output = 1
 
   run_dir = '/work2/noaa/da/weihuang/cycling'
   runtype = 'C96_lgetkf_sondesonly'
@@ -168,13 +143,11 @@ if __name__ == '__main__':
 
   #-----------------------------------------------------------------------------------------
   opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'run_dir=', 'datestr=', 'runtype=',
-                                                'output=', 'obstype=', 'basename=', 'casename='])
+                                                'obstype=', 'basename=', 'casename='])
 
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
-    elif o in ('--output'):
-      output = int(a)
     elif o in ('--run_dir'):
       run_dir = a
     elif o in ('--datestr'):
@@ -189,12 +162,6 @@ if __name__ == '__main__':
       casename = a
     else:
       assert False, 'unhandled option'
-
-  gp = genplot(debug=debug, output=output)
-  clevs = np.arange(-0.5, 0.51, 0.01)
-  cblevs = np.arange(-0.5, 0.6, 0.1)
-  gp.set_clevs(clevs=clevs)
-  gp.set_cblevs(cblevs=cblevs)
 
   c2o = Compare2Obs(debug=debug)
 
@@ -212,19 +179,5 @@ if __name__ == '__main__':
     print('f1: ', f1)
     print('f2: ', f2)
   
-    lat, lon, diffinfo = c2o.process(f1, f2, obs, datestr)
-
-    difflist = diffinfo.keys()
-    print('difflist: ', difflist)
-
-    for grpname in diffinfo.keys():
-      varlist = diffinfo[grpname].keys()
-      for name in varlist:
-        var = diffinfo[grpname][name]
-
-        imgname = '%s_%s_%s_%s.png' %(obs, datestr, grpname, name)
-        title = '%s %s %s %s' %(obs, datestr, grpname, name)
-        gp.set_imagename(imgname)
-        gp.set_title(title)
-        gp.obsonly(lon, lat, var, title=title)
+    c2o.process(f1, f2)
 

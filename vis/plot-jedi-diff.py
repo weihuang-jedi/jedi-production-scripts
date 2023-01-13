@@ -16,6 +16,10 @@ import cartopy.mpl.ticker as cticker
 
 import netCDF4 as nc4
 
+import tkinter
+import matplotlib
+matplotlib.use('TkAgg')
+
 #=========================================================================
 class GeneratePlot():
   def __init__(self, debug=0, output=0):
@@ -24,7 +28,7 @@ class GeneratePlot():
 
     self.set_default()
 
-  def plot(self, lons, lats, data=[]):
+  def plot(self, lons, lats, data=[], datestr=' '):
    #ax.coastlines(resolution='110m')
    #ax.gridlines()
 
@@ -55,57 +59,36 @@ class GeneratePlot():
      #if((vmax - vmin) > 1.0e-5):
      #  self.clevs, self.cblevs = get_plot_levels(pvar)
 
-      if(i < 2):
-       #self.cmapname = 'coolwarm'
-       #self.cmapname = 'rainbow'
-        self.cmapname = 'jet'
-        self.clevs = np.arange(-2.0, 2.1, 0.1)
-        self.cblevs = np.arange(-2.0, 3.0, 1.0)
-      else:
-        self.cmapname = 'bwr'
-       #self.clevs = np.arange(-2.0, 2.1, 0.1)
-       #self.cblevs = np.arange(-2.0, 3.0, 1.0)
-        self.clevs = np.arange(-1.0, 1.05, 0.05)
-        self.cblevs = np.arange(-1.0, 1.2, 0.2)
-       #self.clevs = np.arange(-0.01, 0.011, 0.001)
-       #self.cblevs = np.arange(-0.01, 0.015, 0.005)
+     #cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
+     #cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
 
-      self.cmapname = 'bwr'
-      self.clevs = np.arange(-2.0, 2.1, 0.1)
-      self.cblevs = np.arange(-2.0, 2.5, 0.5)
+     #cs=axs[i].contourf(lons, lats, pvar, transform=proj,
+     #                   levels=self.clevs, extend=self.extend,
+     #                   alpha=self.alpha, cmap=self.cmapname)
 
-      cyclic_data, cyclic_lons = add_cyclic_point(pvar, coord=lons)
-
-      cs=axs[i].contourf(cyclic_lons, lats, cyclic_data, transform=proj,
-                         levels=self.clevs, extend=self.extend,
+      cs=axs[i].contourf(lons, lats, pvar, transform=proj,
+                         extend=self.extend,
                          alpha=self.alpha, cmap=self.cmapname)
-     #               cmap=self.cmapname, extend='both')
 
       axs[i].set_extent([-180, 180, -90, 90], crs=proj)
       axs[i].coastlines(resolution='auto', color='k')
       axs[i].gridlines(color='lightgrey', linestyle='-', draw_labels=True)
 
-     #axs[i].set_title(self.runname[i])
-      title = '%s min: %5.2f, max: %5.2f' %(self.runname[i], vmin, vmax)
+      title = '%s %s Min: %6.2f, Max: %6.2f' %(datestr, self.runname[i], vmin, vmax)
       axs[i].set_title(title)
-
-     #minor_ticks_top=np.linspace(0,60,13)
-     #minor_ticks_top=np.linspace(-60,0,13)
-     #axs[i].set_yticks(minor_ticks_top,minor=True)
+     #axs[i].set_title(self.runname[i])
 
      #Draw the colorbar
-      cbar=plt.colorbar(cs, ax=axs[i], pad=self.pad,
-                        ticks=self.cblevs, shrink=0.85,
+     #cbar=fig.colorbar(cs, cax=axs[i], pad=self.pad, ticks=self.cblevs,
+      cbar=fig.colorbar(cs, ax=axs[i], pad=self.pad,
                         orientation='vertical')
-                       #orientation='horizontal')
 
-     #cbar.set_label(self.label, rotation=90)
-      cbar.set_label(self.label)
+      cbar.set_label(self.label, rotation=90)
 
    #Add a big title at the top
     plt.suptitle(self.title)
 
-    fig.canvas.draw()
+   #fig.canvas.draw()
     plt.tight_layout()
 
     if(self.output):
@@ -121,7 +104,7 @@ class GeneratePlot():
   def set_default(self):
     self.imagename = 'sample.png'
 
-    self.runname = ['First', 'Second', 'Second - First']
+    self.runname = ['GSI', 'JEDI', 'JEDI - GSI']
 
    #cmapname = coolwarm, bwr, rainbow, jet, seismic
     self.cmapname = 'bwr'
@@ -145,6 +128,9 @@ class GeneratePlot():
 
   def set_label(self, label='Unit (C)'):
     self.label = label
+
+  def set_runname(self, runname=['GSI', 'JEDI', 'JEDI - GSI']):
+    self.runname = runname
 
   def set_title(self, title='Temperature Increment'):
     self.title = title
@@ -175,14 +161,18 @@ def get_plot_levels(var):
     pmax = 10.0*int(0.5 + (vmax-vcen)/10.0) + vcen
     pmin = vcen - 10.0*int(0.5 + (vmax-vcen)/10.0)
   else:
-    pcen = vcen
+    pmax = vmax
+    if(np.abs(vmin) > pmax):
+      pmax = np.abs(vmin)
+  
     fact = 1.0
-    while(pcen < 1.0):
+    while(pmax < 10.0):
       fact *= 10.0
-      pcen *= 10.0
-    vcen = 10.0*int(pcen/10.0)/fact
-    pmax = 10.0*int(0.5 + fact*(vmax-vcen)/10.0)/fact + vcen
-    pmin = vcen - 10.0*int(0.5 + fact*(vmax-vcen)/10.0)/fact
+      pmax *= 10.0
+    pmin = fact*vmin
+    pcen = 0.5*(pmin + pmax)
+    pmax = (10.0*int(0.5 + (pmax-pcen)/10.0) + vcen)/fact
+    pmin = (vcen - 10.0*int(0.5 + (pmax-pcen)/10.0))/fact
 
   print('\tget_plot_lelves: pmin = %f, pcen = %f, pmax = %f' %(pmin, vcen, pmax))
 
@@ -201,29 +191,30 @@ def get_plot_levels(var):
 if __name__== '__main__':
   debug = 1
   output = 0
-  frtdir = '/work2/noaa/da/weihuang/cycling/jedi_C96_lgetkf_sondesonly/2020010112'
- #snddir = '%s/whole.run_80.40t1n_36p/%s' %(topdir, incdir)
-  snddir = '%s/observer.run_80.40t1n_36p/%s' %(topdir, incdir)
+  datestr = '2020010112'
 
-  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=',
-                                                'sndfile=', 'frtfile='])
+  opts, args = getopt.getopt(sys.argv[1:], '', ['debug=', 'output=', 'datestr='])
   for o, a in opts:
     if o in ('--debug'):
       debug = int(a)
     elif o in ('--output'):
       output = int(a)
-    elif o in ('--sndfile'):
-      sndfile = a
-    elif o in ('--frtfile'):
-      frtfile = a
+    elif o in ('--datestr'):
+      datestr = a
     else:
       assert False, 'unhandled option'
 
 #-----------------------------------------------------------------------------------------
   gp = GeneratePlot(debug=debug, output=output)
 
-  frtfile = '%s/xainc.20200101_120000z.nc4' %(frtdir)
-  sndfile = '%s/xainc.20200101_120000z.nc4' %(snddir)
+  frtdir = '/work2/noaa/da/weihuang/cycling/med.jedi_C96_lgetkf_sondesonly'
+  snddir = '/work2/noaa/da/weihuang/cycling/jedi_C96_lgetkf_sondesonly'
+
+ #datestr = '2020010112'
+  datestr = '2020010412'
+
+  frtfile = '%s/%s/sanl_%s_fhr06_ensmean' %(frtdir, datestr, datestr)
+  sndfile = '%s/%s/sanl_%s_fhr06_ensmean' %(snddir, datestr, datestr)
 
   ncfrt = nc4.Dataset(frtfile, 'r')
   ncsnd = nc4.Dataset(sndfile, 'r')
@@ -239,22 +230,47 @@ if __name__== '__main__':
   gp.set_cblevs(cblevs=cblevs)
 
 #-----------------------------------------------------------------------------------------
-  varlist = ['tmp', 'ugrd', 'vgrd', 'delp', 'spfh', 'o3mr', 'delz']
+  varlist = ['tmp', 'ugrd', 'vgrd', 'dpres', 'spfh', 'o3mr', 'delz']
+
   unitlist = ['Unit (C)', 'Unit (m/s)', 'Unit (m/s)', 'Unit (Pa)',
               'Unit (kg/kg)', 'Unit (ppm)', 'Unit (m)']
 
 #-----------------------------------------------------------------------------------------
   for n in range(len(varlist)):
-    frtvar = ncfrt.variables[varlist[n]][0, :, :, :]
     sndvar = ncsnd.variables[varlist[n]][0, :, :, :]
+    frtvar = ncfrt.variables[varlist[n]][0, :, :, :]
 
-    print('frtvar.shape = ', frtvar.shape)
     print('sndvar.shape = ', sndvar.shape)
+    print('frtvar.shape = ', frtvar.shape)
     nlev, nlat, nlon = sndvar.shape
 
+    if('T_inc' == varlist[n]):
+      clevs = 2.0*np.arange(-1.0, 1.01, 0.01)
+      cblevs = 2.0*np.arange(-1.0, 1.1, 0.1)
+    elif('u_inc' == varlist[n]):
+      clevs = 10.0*np.arange(-1.0, 1.01, 0.01)
+      cblevs = 10.0*np.arange(-1.0, 1.1, 0.1)
+    elif('v_inc' == varlist[n]):
+      clevs = 10.0*np.arange(-1.0, 1.01, 0.01)
+      cblevs = 10.0*np.arange(-1.0, 1.1, 0.1)
+    elif('delp_inc' == varlist[n]):
+      clevs = np.arange(-1.0, 1.01, 0.01)
+      cblevs = np.arange(-1.0, 1.1, 0.1)
+    elif('delz_inc' == varlist[n]):
+      clevs = np.arange(-1.0, 1.01, 0.01)
+      cblevs = np.arange(-1.0, 1.1, 0.1)
+    elif('o3mr_inc' == varlist[n]):
+      clevs = 1.0e-8*np.arange(-1.0, 1.01, 0.01)
+      cblevs = 1.0e-8*np.arange(-1.0, 1.1, 0.1)
+    elif('sphum_inc' == varlist[n]):
+      clevs = 0.001*np.arange(-1.0, 1.01, 0.01)
+      cblevs = 0.001*np.arange(-1.0, 1.1, 0.1)
+    
+    gp.set_clevs(clevs=clevs)
+    gp.set_cblevs(cblevs=cblevs)
     gp.set_label(unitlist[n])
 
-    for lev in range(5, nlev, 10):
+    for lev in range(15, nlev, 30):
       v0 = frtvar[lev,:,:]
       v1 = sndvar[lev,:,:]
       v2 = v1 - v0
@@ -273,12 +289,12 @@ if __name__== '__main__':
       print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
       print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
 
-      imagename = '%s_lev_%3.3d.png' %(varlist[n], lev)
+      imagename = '%s_%s_lev_%3.3d.png' %(varlist[n], datestr, lev)
       gp.set_imagename(imagename)
 
-      gp.plot(lons, lats, data=data)
+      gp.plot(lons, lats, data=data, datestr=datestr)
 
 #-----------------------------------------------------------------------------------------
-  ncfrt.close()
   ncsnd.close()
+  ncfrt.close()
 

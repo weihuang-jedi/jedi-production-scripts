@@ -110,3 +110,34 @@ if __name__ == '__main__':
   gp.set_title(title)
   gp.obsonly(lat, lon, dv, title=title)
 
+#------------------------------------------------------------------------------
+  total_obs = len(var)
+  nonzero_obs = 0
+  npositive = 0
+  nnegative = 0
+  maxdelt = 1.0e-9
+  plat = []
+  plon = []
+  pvar = []
+  for n in range(total_obs):
+    if(abs(dv[n]) > maxdelt):
+      nonzero_obs += 1
+      plat.append(lat[n])
+      plon.append(lon[n])
+      pvar.append(var[n])
+      if(dv[n] > 0.0):
+        npositive += 1
+      else:
+        nnegative += 1
+
+  print('total_obs: %d, non-zero_obs: %d' %(total_obs, nonzero_obs))
+  print('positive obs: %d, negative obs: %d' %(npositive, nnegative))
+  print('dv min: %f, dv max: %f' %(np.min(dv), np.max(dv)))
+
+  imgname = '%s_%s_%s_nonezero.png' %(grpname, varname, datestr)
+  title = '%s %s %s_nonezero' %(grpname, varname, datestr)
+
+  gp.set_imagename(imgname)
+  gp.set_title(title)
+  gp.obsonly(plat, plon, pvar, title=title)
+
