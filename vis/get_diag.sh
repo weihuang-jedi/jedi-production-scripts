@@ -2,6 +2,9 @@
 
  set -x
 
+ edate=2020010406
+#edate=2020012218
+
  plot_stats () {
    argnum=$#
    if [ $argnum -lt 4 ]
@@ -53,13 +56,6 @@
    mv -f *.csv ${dirname}/.
    mv -f *.png ${dirname}/.
  }
-
- edate=2020010418
-#edate=2020012218
-
-#plot_stats 2020010118 ${edate} 12 at_6h  gsi jedi
-#plot_stats 2020010112 ${edate} 12 at_12h gsi jedi
-#plot_stats 2020010112 ${edate} 6  all    gsi jedi
 
  tar cvf ~/jg.tar plot-jedi-gsi-diag.py get_diag.sh
 #------------------------------------------------------------------------------

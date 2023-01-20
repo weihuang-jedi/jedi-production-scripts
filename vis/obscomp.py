@@ -9,6 +9,8 @@ import numpy as np
 from genplot import GeneratePlot as genplot
 from readIODA2Obs import ReadIODA2Obs
 
+import matplotlib.pyplot as plt
+
 import tkinter
 import matplotlib
 matplotlib.use('TkAgg')
@@ -39,13 +41,73 @@ class Compare2Obs():
   
     return indx
 
+#-----------------------------------------------------------------------------------------
+  def get_bin_data(self, rawdata):
+    vmin = np.min(rawdata)
+    vmax = np.max(rawdata)
+
+    bins = 100
+    slices = np.linspace(vmin, vmax, bins+1, True).astype(np.float)
+    counts = np.diff(slices)
+
+    print('slices = ', slices)
+    print('counts = ', counts)
+
+    mean = np.add.reduceat(rawdata, slices[:-1]) / counts
+    print('mean=', mean)
+
+    return slices, counts, mean
+
+#-----------------------------------------------------------------------------------------
+  def get_histogram(self, data):
+    vmin = np.min(data)
+    vmax = np.max(data)
+
+    bins = 101
+    histogram = np.zeros(bins)
+    xp = np.linspace(vmin, vmax, bins, True).astype(np.float)
+
+    vlen = vmax - vmin
+    for n in range(len(data)):
+      i = int(bins*((data[n]-vmin)/vlen))
+      if(i >= bins):
+        i -= 1
+      histogram[i] += 1
+
+    print('len(xp) = ', len(xp))
+    print('len(histogram) = ', len(histogram))
+    print('histogram = ', histogram)
+
+    return xp, histogram
+
+#-----------------------------------------------------------------------------------------
+  def plot_histogram(self, xp, histogram, title):
+    bins = len(histogram)
+
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.add_subplot(1, 1, 1)
+
+   #ax.bar(bins, histogram)
+
+    ax.plot(xp, histogram, color='r')
+
+    ax.set_title(title)
+   #plt.title(title)
+
+    imagename = '%s.png' %(title.replace(' ', '_'))
+    plt.savefig(imagename)
+    plt.show() 
+
 #------------------------------------------------------------------------------
 if __name__ == '__main__':
-  obstype = 'obsout'
-  datestr = '2020010112'
+ #datadir = '/work2/noaa/da/weihuang/cycling/jedi_C96_lgetkf_sondesonly/2020010112.no-use-control-member'
+ #obstype = 'obsout.1n'
   datadir = '/work2/noaa/da/weihuang/cycling/jedi_C96_lgetkf_sondesonly/2020010112'
-  basename = '%s/%s/sondes_tsen_obs_%s_0000.nc4' %(datadir, obstype, datestr)
   obstype = 'observer'
+  datestr = '2020010112'
+  basename = '%s/%s/sondes_tsen_obs_%s_0000.nc4' %(datadir, obstype, datestr)
+  datadir = '/work2/noaa/da/weihuang/cycling/jedi_C96_lgetkf_sondesonly/2020010112'
+  obstype = 'obsout'
   filename = '%s/%s/sondes_tsen_obs_%s_0000.nc4' %(datadir, obstype, datestr)
   debug = 1
   output = 0
@@ -140,4 +202,12 @@ if __name__ == '__main__':
   gp.set_imagename(imgname)
   gp.set_title(title)
   gp.obsonly(plat, plon, pvar, title=title)
+
+  title = 'histogram %s %s %s' %(grpname, varname, datestr)
+ #slices, counts, mean = c2o.get_bin_data(dv)
+ #histogram = float(counts)
+ #c2o.plot_histogram(histogram, title)
+
+  xp, histogram = c2o.get_histogram(dv)
+  c2o.plot_histogram(xp, histogram, title)
 

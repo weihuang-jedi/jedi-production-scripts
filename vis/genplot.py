@@ -154,9 +154,9 @@ class GeneratePlot():
   def obsonly(self, obslat, obslon, obsvar, title='No Title'):
     print('Plotting ', title)
 
-    fig = plt.figure(figsize=(10, 5))
-    ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
     proj = ccrs.PlateCarree()
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.add_subplot(1, 1, 1, projection=proj)
 
     colors = [str(item/255.) for item in range(len(obsvar))]
 

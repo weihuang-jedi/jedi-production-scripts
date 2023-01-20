@@ -222,7 +222,7 @@ def plot_lines(plevs, frtrms, sndrms, header='temp', output=0, lbl1='GSI', lbl2=
   plt.ylim(0, 1000)
  
  #general title
-  title = 'GSI and JEDI %s rms' %(header)
+  title = '%s and %s %s rms' %(lbl1, lbl2, header)
   plt.suptitle(title, fontsize=16, fontweight=1, color='black')
 
  #Create a big subplot

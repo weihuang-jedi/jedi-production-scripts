@@ -200,7 +200,7 @@ if __name__ == '__main__':
 
   #-----------------------------------------------------------------------------------------
   obslist = ['sondes_tsen', 'sondes_tv', 'sondes_uv', 'sondes_q']
-  basedir = '%s/%s_%s/%s/obsout' %(run_dir, basename, runtype, datestr)
+  basedir = '%s/%s_%s/%s.no-use-control-member/obsout.1n' %(run_dir, basename, runtype, datestr)
   casedir = '%s/%s_%s/%s/observer' %(run_dir, casename, runtype, datestr)
   for obs in obslist:
     if(obstype in ['observer', 'solver']):
