@@ -11,85 +11,25 @@ class Compare2Obs():
   def __init__(self, debug=0):
     self.debug = debug
 
-  def comp_rootvar(self, nc1, nc2):
+  def list_rootvar(self, nc1, nc2):
     v1list = list(nc1.variables)
     v2list = list(nc2.variables)
     n = 0
     for name in v1list:
       print('Var %d: %s' %(n, name))
-      n += 1
-      v1 = nc1.variables[name][:]
-      if(type(v1) == str):
-        continue
-
-      if(name not in v2list):
-        print('variable name: %s is not in v2list' %(name))
-        continue
-
-      v2 = nc2.variables[name][:]
-     #dv = v2 - v1
-
-      print('\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
-      print('\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
-     #print('\tdv.max: %f, dv.min: %f' %(np.max(dv), np.min(dv)))
 
 #-----------------------------------------------------------------------------------------
-  def comp_var_in_group(self, ncg1, ncg2, idx):
+  def list_var_in_group(self, ncg1, ncg2):
     v1list = list(ncg1.variables)
     v2list = list(ncg2.variables)
     maxdelt = 1.0e-6
     n = 0
     for name in v1list:
       n += 1
-      v1 = ncg1.variables[name][:]
-     #print('v1.dtype.type = ', v1.dtype.type)
-     #if(v1.dtype.type is np.string_):
-      if(type(v1[0]) == str):
-        continue
+      print('\tvariable No %d: %s' %(n, name))
       if(name not in v2list):
         print('variable name: %s is not in v2list' %(name))
         continue
-
-      v2 = ncg2.variables[name][:]
-      if(type(v2[0]) == str):
-        continue
-     #if(v2.dtype.type is np.str):
-     #  continue
-      dv = v2 - v1[idx]
-  
-      if(np.max(dv) > maxdelt or np.min(dv) < -maxdelt):
-        print('\tVar %d: %s' %(n, name))
-        print('\t\tv1.max: %f, v1.min: %f' %(np.max(v1), np.min(v1)))
-        print('\t\tv2.max: %f, v2.min: %f' %(np.max(v2), np.min(v2)))
-        print('\t\tdv.max: %f, dv.min: %f' %(np.max(dv), np.min(dv)))
-
-        for i in range(len(v2)):
-          if(np.absolute(v1[i] - v2[idx[i]]) > maxdelt):
-            linfo = 'No. %d: lat1: %f, lat2: %f' %(i, self.lat1[i], self.lat2[idx[i]])
-            linfo = '%s: lon1: %f, lon2: %f' %(linfo, self.lon1[i], self.lon2[idx[i]])
-            linfo = '%s: v1: %f, v2: %f' %(linfo, v1[i], v2[idx[i]])
-            print(linfo)
-
-#-----------------------------------------------------------------------------------------
-  def get_sorted_index(self, lat1, lon1, lat2, lon2):
-    indx = []
-    locn = [i for i in range(len(lat1))]
-    maxdelt = 1.0e-6
-    for i in range(len(lat1)):
-      if(i%100 == 0):
-        print('Processing No. ', i)
-      for n in range(len(locn)):
-        j = locn[n]
-        if(np.absolute(lat1[i] - lat2[j]) < maxdelt):
-          if(np.absolute(lon1[i] - lon2[j]) < maxdelt):
-            indx.append(j)
-            locn.pop(n)
-            break
-
-    print('len(lat1) = ', len(lat1))
-    print('len(indx) = ', len(indx))
-  
-    return indx
 
 #-----------------------------------------------------------------------------------------
   def process(self, f1, f2):
@@ -105,30 +45,24 @@ class Compare2Obs():
       print('f2: %s does not exist.' %(f2))
       sys.exit(-1)
   
-    self.lat1 = nc1.groups['MetaData'].variables['latitude']
-    self.lon1 = nc1.groups['MetaData'].variables['longitude']
-  
-    self.lat2 = nc2.groups['MetaData'].variables['latitude']
-    self.lon2 = nc2.groups['MetaData'].variables['longitude']
-  
-    self.idx = self.get_sorted_index(self.lat1, self.lon1, self.lat2, self.lon2)
-  
-   #print('list(nc1.variables): ', list(nc1.variables))
-   #print('list(nc1.groups): ', list(nc1.groups))
-  
-    self.comp_rootvar(nc1, nc2)
+    self.list_rootvar(nc1, nc2)
   
     g1list = list(nc1.groups)
     g2list = list(nc2.groups)
   
+    n = 0
     for name in g1list:
-      print('group name: ', name)
+      n += 1
+      print('group %d: %s' %(n, name))
       if(name not in g2list):
         print('group name: %s is not in g2list' %(name))
         continue
       ncg1 = nc1.groups[name]
       ncg2 = nc2.groups[name]
-      self.comp_var_in_group(ncg1, ncg2, self.idx)
+      self.list_var_in_group(ncg1, ncg2)
+
+    print('len(g1list) = ', len(g1list))
+    print('len(g2list) = ', len(g2list))
   
 #-----------------------------------------------------------------------------------------
 if __name__ == '__main__':
